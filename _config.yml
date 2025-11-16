@@ -1,0 +1,37 @@
+# Site settings
+title: Rajat Manish Bhagat
+email: rajat.bhagat@gmail.com
+description: >-
+  Application Engineer specializing in cloud development, microservices,
+  and data engineering. Experienced in Python, Java, and modern web technologies.
+baseurl: ""
+url: "https://rajatbhagat.github.io"
+
+# Social media
+github_username: rajatbhagat
+linkedin_username: rajatbhagat
+
+# Build settings
+theme: minima
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - index.md
+  - about.md
+  - projects.md
+  - contact.md
+
+# Google Analytics (optional - add your tracking ID)
+# google_analytics: UA-XXXXXXXXX-X
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
