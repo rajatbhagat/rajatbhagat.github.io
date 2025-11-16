@@ -3,9 +3,11 @@ layout: home
 title: Home
 ---
 
-# Hi, I'm Rajat Manish Bhagat
-
-**Application Engineer** passionate about building scalable cloud solutions and data-driven applications.
+<div class="profile-container">
+  <img src="/assets/images/profile.jpg" alt="Rajat Manish Bhagat" class="profile-image">
+  <h1>Hi, I'm Rajat Manish Bhagat</h1>
+  <p class="profile-tagline"><strong>Application Engineer</strong> passionate about building scalable cloud solutions and data-driven applications.</p>
+</div>
 
 Currently working at **Discover Financial Services** in Chicago, where I lead development of microservices orchestrating over 200,000 artifacts and enhance data pipeline quality across 400+ pipelines.
 
@@ -35,6 +37,10 @@ Currently working at **Discover Financial Services** in Chicago, where I lead de
 
 ---
 
-📧 **Get in touch**: [rajat.bhagat@gmail.com](mailto:rajat.bhagat@gmail.com) | 📍 Chicago, USA
-
-[LinkedIn](https://linkedin.com/in/rajatbhagat) • [GitHub](https://github.com/rajatbhagat)
+<div class="contact-highlight">
+  <p>📧 <strong>Get in touch</strong>: <a href="mailto:rajat.bhagat@gmail.com">rajat.bhagat@gmail.com</a> | 📍 Chicago, USA</p>
+  <p class="social-links">
+    <a href="https://linkedin.com/in/rajatbhagat" target="_blank">LinkedIn</a> •
+    <a href="https://github.com/rajatbhagat" target="_blank">GitHub</a>
+  </p>
+</div>

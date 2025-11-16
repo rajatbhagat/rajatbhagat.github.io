@@ -7,6 +7,12 @@ description: >-
 baseurl: ""
 url: "https://rajatbhagat.github.io"
 
+# Author information
+author:
+  name: Rajat Manish Bhagat
+  email: rajat.bhagat@gmail.com
+  picture: /assets/images/profile.jpg
+
 # Social media
 github_username: rajatbhagat
 linkedin_username: rajatbhagat
