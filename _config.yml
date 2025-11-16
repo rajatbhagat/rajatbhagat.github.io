@@ -1,21 +1,49 @@
 # Site settings
-title: Rajat Manish Bhagat
+title: Rajat Manish Bhagat - Software Engineer & Data Platform Specialist
 email: rajat.bhagat@gmail.com
 description: >-
-  Application Engineer specializing in cloud development, microservices,
-  and data engineering. Experienced in Python, Java, and modern web technologies.
+  Rajat Manish Bhagat is a Software Engineer specializing in Data Platforms, Cloud Development,
+  and Microservices. 6+ years experience with Python, Java, AWS, Snowflake, and Kubernetes.
+  Currently seeking Data Platform opportunities in Chicago. Former Discover Financial Services,
+  Mythics LLC, and JP Morgan Chase engineer. MS in Computer Science from Northeastern University.
 baseurl: ""
 url: "https://rajatbhagat.github.io"
+locale: "en_US"
+lang: "en"
+
+# SEO and Social
+tagline: "Software Engineer | Data Platform Specialist | Cloud & Microservices Expert"
+keywords: "Rajat Bhagat, Rajat Manish Bhagat, Software Engineer, Data Engineer, Data Platform,
+  Python Developer, Java Developer, AWS, Cloud Engineer, Microservices, Chicago,
+  Northeastern University, Snowflake, Kubernetes, Docker, React, Node.js"
 
 # Author information
 author:
   name: Rajat Manish Bhagat
   email: rajat.bhagat@gmail.com
   picture: /assets/images/profile.jpg
+  location: Chicago, Illinois, USA
+  job_title: Application Engineer
+  links:
+    - label: LinkedIn
+      url: "https://linkedin.com/in/rajatbhagat"
+    - label: GitHub
+      url: "https://github.com/rajatbhagat"
 
 # Social media
 github_username: rajatbhagat
 linkedin_username: rajatbhagat
+twitter:
+  username: rajatbhagat
+  card: summary
+
+# Social profiles for structured data
+social:
+  name: Rajat Manish Bhagat
+  links:
+    - https://linkedin.com/in/rajatbhagat
+    - https://github.com/rajatbhagat
+    - https://rajatbhagat.github.io
 
 # Build settings
 theme: minima
@@ -23,6 +51,7 @@ markdown: kramdown
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
 
 # Navigation
 header_pages:

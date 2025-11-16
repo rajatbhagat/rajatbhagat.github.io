@@ -2,11 +2,12 @@
 layout: page
 title: Contact
 permalink: /contact/
+description: Contact Rajat Manish Bhagat - Software Engineer seeking Data Platform opportunities in Chicago. Email, phone, LinkedIn, and GitHub contact information.
 ---
 
 # Get In Touch
 
-I'm always interested in hearing about new opportunities, collaborations, or just connecting with fellow developers and engineers.
+I'm actively seeking new opportunities in the Data Platform space and am always interested in hearing about challenging roles, collaborations, or just connecting with fellow developers and engineers.
 
 ## Contact Information
 
@@ -30,11 +31,17 @@ I'm always interested in hearing about new opportunities, collaborations, or jus
 
 ## Current Focus
 
-I'm currently working on:
-- Scaling microservices architectures
-- Cloud cost optimization strategies
+I'm currently seeking opportunities in:
+- Data Platform Engineering roles
+- Cloud-based data infrastructure
+- Microservices and distributed systems
+- Data pipeline orchestration and optimization
+
+Areas of expertise:
+- Scalable data platforms and architectures
+- Cloud infrastructure (AWS, Oracle Cloud)
 - Data quality and reconciliation frameworks
-- Modern web application development
+- Microservices development and orchestration
 
 ---
 

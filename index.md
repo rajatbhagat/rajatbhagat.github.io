@@ -1,6 +1,7 @@
 ---
 layout: home
 title: Home
+description: Rajat Manish Bhagat - Software Engineer specializing in Data Platforms, Cloud Development, and Microservices. 6+ years experience. Currently seeking Data Platform opportunities in Chicago.
 ---
 
 <div class="profile-container">

@@ -2,11 +2,12 @@
 layout: page
 title: About
 permalink: /about/
+description: About Rajat Manish Bhagat - Professional experience at Discover Financial Services, Mythics LLC, and JP Morgan Chase. MS Computer Science from Northeastern University. AWS & Oracle Cloud certified.
 ---
 
 # About Me
 
-I'm a software engineer with a passion for building scalable, efficient cloud solutions. Currently based in Chicago, I work as an Application Engineer at Discover Financial Services, where I lead development of critical microservices and data engineering platforms.
+I'm a software engineer with a passion for building scalable, efficient cloud solutions and data platforms. Currently based in Chicago and actively seeking new opportunities in the Data Platform space. Most recently, I worked as an Application Engineer at Discover Financial Services, where I led development of critical microservices and data engineering platforms.
 
 ## Education
 

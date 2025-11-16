@@ -2,6 +2,7 @@
 layout: page
 title: Projects
 permalink: /projects/
+description: Software development projects by Rajat Manish Bhagat including cloud cost monitoring, microservices, data platforms, NLP, and infrastructure automation using Python, Java, AWS, Kubernetes, and React.
 ---
 
 # Featured Projects
