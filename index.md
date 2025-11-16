@@ -9,7 +9,7 @@ title: Home
   <p class="profile-tagline"><strong>Application Engineer</strong> passionate about building scalable cloud solutions and data-driven applications.</p>
 </div>
 
-Currently working at **Discover Financial Services** in Chicago, where I lead development of microservices orchestrating over 200,000 artifacts and enhance data pipeline quality across 400+ pipelines.
+**Actively seeking new opportunities** in the **Data Platform** space. Previously at Discover Financial Services, where I led development of microservices orchestrating over 200,000 artifacts and enhanced data pipeline quality across 400+ pipelines.
 
 ## What I Do
 

@@ -16,7 +16,7 @@ I'm a software engineer with a passion for building scalable, efficient cloud so
 ## Professional Experience
 
 ### Discover Financial Services | Chicago, US
-**Application Engineer** | Apr 2024 – Present
+**Application Engineer** | Apr 2024 – Oct 2024
 
 - Spearheaded development and enhancement of a Python-based microservice - Config Manager, used for orchestrating artifact generation and deployment of over **200,000 artifacts**
 - Enhanced custom reconciliation framework using Python to enable users to define reusable validation controls, reducing manual effort and improving data quality assurance across **400 data pipelines**
