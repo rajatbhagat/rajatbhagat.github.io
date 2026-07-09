@@ -17,8 +17,12 @@ const year = new Date().getFullYear();
 
 <script>
   // The build-time year goes stale on a static site; correct it client-side.
-  const el = document.getElementById('copyright-year');
-  if (el) el.textContent = String(new Date().getFullYear());
+  // astro:page-load re-fires after each view-transition swap.
+  function setYear() {
+    const el = document.getElementById('copyright-year');
+    if (el) el.textContent = String(new Date().getFullYear());
+  }
+  document.addEventListener('astro:page-load', setYear);
 </script>
 
 <style>

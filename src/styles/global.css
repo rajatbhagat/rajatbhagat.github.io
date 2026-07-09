@@ -10,8 +10,21 @@
   --max-width: 900px;
 }
 
+/* Explicit user choice (set by the theme toggle, persisted in localStorage) */
+:root[data-theme='dark'] {
+  --bg: #0f1420;
+  --bg-soft: #1a2130;
+  --text: #e6e9ef;
+  --text-muted: #9aa5b5;
+  --accent: #818cf8;
+  --accent-soft: #232b45;
+  --border: #2a3346;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* System preference fallback for no-JS visitors (values must mirror the block above) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0f1420;
     --bg-soft: #1a2130;
     --text: #e6e9ef;
@@ -115,6 +128,21 @@ blockquote {
 
 .muted {
   color: var(--text-muted);
+}
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn:hover {
+  text-decoration: none;
+  filter: brightness(1.1);
 }
 
 .section-title {

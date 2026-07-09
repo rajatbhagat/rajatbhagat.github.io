@@ -18,6 +18,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       <h1>{site.heroGreeting}</h1>
       <p class="tagline">{site.tagline}</p>
       <p class="pill">{site.openToCallout}</p>
+      <p class="cta">
+        <a href={site.resume} class="btn" download="Rajat-Bhagat-Resume.pdf">Download Resume ↓</a>
+      </p>
       <p class="links">
         <a href={`mailto:${site.email}`}>Email</a> ·
         <a href={site.linkedin} target="_blank" rel="noopener">LinkedIn</a> ·
