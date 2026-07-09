@@ -1,7 +1,7 @@
-import { askClaude } from './chat';
+import { askModel } from './chat';
 
 export interface Env {
-  ANTHROPIC_API_KEY: string;
+  OPENROUTER_API_KEY: string;
   // Phase 2 (RAG): AI: Ai; VECTORIZE: VectorizeIndex;
   // Phase 4 (rate limiting): RATE_LIMIT: KVNamespace;
 }
@@ -56,7 +56,7 @@ export default {
     }
 
     try {
-      const stream = askClaude(env, question.trim());
+      const stream = await askModel(env, question.trim());
       return new Response(stream, {
         headers: { ...cors, 'Content-Type': 'text/plain; charset=utf-8' },
       });

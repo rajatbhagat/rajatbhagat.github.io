@@ -11,13 +11,13 @@ in [`../chatbot/`](../chatbot/); study guide in
 GitHub Pages (static site)
   └── chat widget (Astro island, streams text)
         └── POST /chat → Cloudflare Worker  (free tier: 100k req/day)
-              ├── Phase 1: full corpus in system prompt (cached)
+              ├── Phase 1: full corpus in system prompt
               ├── Phase 2: Workers AI embeddings + Vectorize top-k retrieval
-              └── Claude API (claude-opus-4-8, streaming)
+              └── OpenRouter API (nvidia/nemotron-3-ultra-550b-a55b:free, streaming)
 ```
 
-The Worker exists because GitHub Pages can't hold secrets — the Anthropic API
-key lives in a Worker secret and never reaches the browser.
+The Worker exists because GitHub Pages can't hold secrets — the OpenRouter
+API key lives in a Worker secret and never reaches the browser.
 
 **Design note:** the whole corpus (~8–10K tokens) fits in one prompt, so
 Phase 1 (context stuffing + prompt caching) is the pragmatic optimum today.
@@ -30,8 +30,8 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 - [x] Scaffold: Worker project, routing, CORS, validation, streaming (done)
 - [x] Corpus build script reading `src/content/**` + `site.json` (done)
 - [ ] **Exercise 1:** `buildSystemPrompt()` — persona, grounding, injection
-      defense, `cache_control` on the corpus block
-- [ ] Deploy; set spend cap in Anthropic Console
+      defense
+- [ ] Deploy (`wrangler secret put OPENROUTER_API_KEY`)
 - **Verify:** 10 recruiter questions answered accurately vs. the resume
 
 ### Phase 2 — Real RAG
@@ -52,6 +52,10 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 
 ### Phase 4 — Hardening (before linking it anywhere)
 - [ ] **Exercise 3:** per-IP rate limiting via Workers KV (~20 questions/day)
+- [ ] **Off-topic gate:** classify questions with a tiny free model (or a
+      keyword allowlist) *before* the flagship call, so strangers can't use
+      the endpoint as a free general-purpose LLM and drain the daily request
+      budget — with the Session-1 prompt rules as the backstop
 - [ ] Prompt-injection testing: try to break your own bot; iterate
 - [ ] Log Q&A pairs to KV — recruiters' real questions are free market
       research on the resume
@@ -61,14 +65,15 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 
 | | |
 |---|---|
-| Model | `claude-opus-4-8` ($5/M input, $25/M output) |
-| Per question | ~2–3K input (mostly cache reads at ~10% price) + ~400 output ≈ **$0.01–0.02** |
-| 100 questions/month | a couple of dollars |
-| Cost floor option | Haiku 4.5 ($1/$5) handles corpus-grounded Q&A fine — decide after seeing Opus-quality answers, not before |
+| Model | `nvidia/nemotron-3-ultra-550b-a55b:free` — best free model on OpenRouter as of July 2026 (550B MoE, 1M context) |
+| Per question | **$0** — the budget is requests, not dollars |
+| Free-tier limits | ~20 req/min; **50 req/day** account-wide (1,000/day once you've purchased $10 of credits) |
+| Upgrade path | `MODEL` is one line; frontier models (e.g. `anthropic/claude-opus-4.8`) are available through the same API when quality is worth paying for |
 
-Prompt caching note: the corpus block must be ≥4096 tokens for Opus to cache
-it. The current corpus measures **~2.7K tokens** (`build:corpus` prints the
-estimate), so today caching is a silent no-op — everything works, you just
-pay full input price (~$0.015/question, still cheap). Caching starts paying
-off automatically once blog posts push the corpus past 4096 tokens; the
-`cache_control` field costs nothing to keep in place meanwhile.
+Notes: the 50/day cap is shared across all your OpenRouter free usage, so a
+handful of visitors can exhaust it — the Phase 4 rate limit and off-topic
+gate are what make the budget survive contact with the public. Free
+endpoints may log/train on prompts depending on your OpenRouter privacy
+settings; the corpus is public site content, but visitor questions transit
+too. Re-check `openrouter.ai/models?q=free` occasionally — the free lineup
+changes monthly.
