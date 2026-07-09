@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { projects } from '../data/projects';
+---
+
+<BaseLayout
+  title="Projects — Rajat Manish Bhagat"
+  description="Selected personal and learning projects by Rajat Manish Bhagat."
+>
+  <h1>Projects</h1>
+  <p class="muted">
+    A selection of personal projects. More on
+    <a href="https://github.com/rajatbhagat" target="_blank" rel="noopener">GitHub</a>.
+  </p>
+
+  <div class="grid">
+    {
+      projects.map((project) => (
+        <article class="card">
+          <h2>{project.name}</h2>
+          <p class="desc muted">{project.description}</p>
+          <p class="tech">
+            {project.tech.map((t) => (
+              <span class="pill">{t}</span>
+            ))}
+          </p>
+          <p class="links">
+            {project.links.map((link) => (
+              <a href={link.url} target="_blank" rel="noopener">
+                {link.label} ↗
+              </a>
+            ))}
+          </p>
+        </article>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-top: 2.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .desc {
+    flex: 1;
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .links {
+    margin: 0;
+    display: flex;
+    gap: 1rem;
+  }
+</style>

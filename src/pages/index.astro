@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+
+const skills = [
+  { group: 'Languages', items: 'Java, Python, TypeScript, JavaScript, Terraform, Ansible, C' },
+  { group: 'Web & Frameworks', items: 'Spring Boot, Node.js, React, Redux, Next.js, Django, JUnit' },
+  { group: 'Databases', items: 'Snowflake, PostgreSQL, Oracle Database, MySQL, MongoDB' },
+  { group: 'Cloud & Tools', items: 'AWS, Kafka, OpenShift, Oracle Cloud, Kubernetes, Docker, Jenkins, Git, Linux' },
+];
+
+const highlights = [
+  '7+ years of software engineering experience across fintech and cloud',
+  "Master's in Computer Science, Northeastern University (GPA: 4.0)",
+  'AWS Certified Solutions Architect – Associate (2025)',
+  'Oracle Cloud Infrastructure Associate Architect & Cloud Developer Professional (2023)',
+  'Impact Award recipient, 2 consecutive years at JP Morgan Chase',
+];
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<BaseLayout title="Rajat Manish Bhagat — Software Engineer">
+  <section class="hero">
+    <img src="/images/profile.jpg" alt="Rajat Manish Bhagat" class="avatar" width="180" height="180" />
+    <div>
+      <h1>Hi, I'm Rajat 👋</h1>
+      <p class="tagline">
+        Software engineer specializing in <strong>data platforms</strong>,
+        <strong>cloud infrastructure</strong>, and <strong>backend systems</strong>.
+        Most recently an Associate Principal Software Engineer on the Data Platform
+        team at The Options Clearing Corporation.
+      </p>
+      <p class="pill">🔍 Open to new opportunities in the Data Platform space</p>
+      <p class="links">
+        <a href="mailto:rajat.bhagat@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/rajatbhagat" target="_blank" rel="noopener">LinkedIn</a> ·
+        <a href="https://github.com/rajatbhagat" target="_blank" rel="noopener">GitHub</a> ·
+        Chicago, USA
+      </p>
+    </div>
+  </section>
+
+  <h2 class="section-title">What I work with</h2>
+  <div class="skills">
+    {
+      skills.map(({ group, items }) => (
+        <div class="card">
+          <h3>{group}</h3>
+          <p class="muted">{items}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <h2 class="section-title">Highlights</h2>
+  <ul class="highlights">
+    {highlights.map((h) => <li>{h}</li>)}
+  </ul>
+
+  {
+    posts.length > 0 && (
+      <>
+        <h2 class="section-title">Latest from the blog</h2>
+        <div class="post-list">
+          {posts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+        <p>
+          <a href="/blog/">All posts →</a>
+        </p>
+      </>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .avatar {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border);
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2.2rem;
+  }
+
+  .tagline {
+    max-width: 42rem;
+    margin: 0 0 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .links {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .skills h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+  }
+
+  .skills p {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+
+  .highlights {
+    padding-left: 1.25rem;
+  }
+
+  .highlights li {
+    margin-bottom: 0.4rem;
+  }
+
+  .post-list {
+    display: grid;
+    gap: 1rem;
+  }
+</style>

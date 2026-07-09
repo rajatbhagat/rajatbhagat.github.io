@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const categories = [...new Set(posts.map((p) => p.data.category))];
+  return categories.map((category) => ({
+    params: { category },
+    props: {
+      posts: posts
+        .filter((p) => p.data.category === category)
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { category } = Astro.params;
+const { posts } = Astro.props;
+---
+
+<BaseLayout title={`${category} — Blog — Rajat Bhagat`} description={`Blog posts in the ${category} category.`}>
+  <h1><span class="muted">Category:</span> {category}</h1>
+  <div class="post-list">
+    {posts.map((post) => <PostCard post={post} />)}
+  </div>
+  <p><a href="/blog/">← All posts</a></p>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-top: 2.5rem;
+    font-size: 1.6rem;
+  }
+
+  .post-list {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+</style>

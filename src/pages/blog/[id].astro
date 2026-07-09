@@ -1,0 +1,81 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={`${post.data.title} — Rajat Bhagat`} description={post.data.description}>
+  <article>
+    <header>
+      <p class="meta">
+        <a href={`/blog/category/${post.data.category}/`} class="pill">{post.data.category}</a>
+        <span class="muted">{dateStr}</span>
+      </p>
+      <h1>{post.data.title}</h1>
+      <p class="muted description">{post.data.description}</p>
+    </header>
+    <div class="content">
+      <Content />
+    </div>
+    {
+      post.data.tags.length > 0 && (
+        <p class="tags">
+          {post.data.tags.map((tag) => (
+            <span class="pill">#{tag}</span>
+          ))}
+        </p>
+      )
+    }
+    <p><a href="/blog/">← Back to all posts</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: 44rem;
+    margin: 2.5rem auto 0;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    margin: 0.5rem 0;
+    font-size: 2rem;
+  }
+
+  .description {
+    font-size: 1.05rem;
+    margin-top: 0;
+  }
+
+  .content {
+    margin: 2rem 0;
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+</style>

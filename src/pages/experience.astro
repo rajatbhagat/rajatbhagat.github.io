@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { roles, education, certifications } from '../data/experience';
+---
+
+<BaseLayout
+  title="Experience — Rajat Manish Bhagat"
+  description="Professional experience of Rajat Manish Bhagat: OCC, Discover Financial Services, Mythics, and JP Morgan Chase."
+>
+  <h1>Experience</h1>
+
+  <div class="timeline">
+    {
+      roles.map((role) => (
+        <section class="card role">
+          <div class="role-header">
+            <div>
+              <h2>{role.company}</h2>
+              <p class="title">{role.title}</p>
+            </div>
+            <div class="when muted">
+              <p>{role.period}</p>
+              <p>{role.location}</p>
+            </div>
+          </div>
+          <ul>
+            {role.bullets.map((b) => (
+              <li>{b}</li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <h2 class="section-title">Education</h2>
+  <section class="card">
+    <div class="role-header">
+      <div>
+        <h2>{education.school}</h2>
+        <p class="title">{education.degree} · {education.detail}</p>
+      </div>
+      <div class="when muted">
+        <p>{education.period}</p>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Certifications & Achievements</h2>
+  <ul class="certs">
+    {certifications.map((c) => <li>{c}</li>)}
+  </ul>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-top: 2.5rem;
+  }
+
+  .timeline {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .role-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .role-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .title {
+    margin: 0.2rem 0 0;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .when {
+    text-align: right;
+    font-size: 0.9rem;
+  }
+
+  .when p {
+    margin: 0;
+  }
+
+  .role ul {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .role li {
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .certs {
+    padding-left: 1.25rem;
+  }
+
+  .certs li {
+    margin-bottom: 0.4rem;
+  }
+</style>

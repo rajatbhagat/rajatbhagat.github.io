@@ -1,38 +1,55 @@
-# Rajat Manish Bhagat - Portfolio Website
+# rajatbhagat.github.io
 
-This is my personal portfolio website built with Jekyll and hosted on GitHub Pages.
+Personal portfolio + blog, built with [Astro](https://astro.build) and deployed to GitHub Pages.
 
-## About
+Live at **https://rajatbhagat.github.io**
 
-This portfolio showcases my professional experience, projects, and technical skills as an Application Engineer specializing in cloud development and data engineering.
+## Local development
 
-## Technologies Used
+Requires Node 20+ (`nvm use 22`).
 
-- Jekyll (Static Site Generator)
-- GitHub Pages (Hosting)
-- Markdown (Content)
-- Minima Theme (Design)
+```bash
+npm install
+npm run dev        # dev server at localhost:4321
+npm run build      # production build into dist/
+npm run preview    # preview the production build
+```
 
-## Local Development
+## How to update things
 
-To run this site locally:
+| What | Where |
+|---|---|
+| Home page intro / skills / highlights | `src/pages/index.astro` |
+| Work experience & certifications | `src/data/experience.ts` |
+| Projects | `src/data/projects.ts` |
+| Blog posts | `src/content/blog/*.md` |
+| Site-wide layout, nav, footer | `src/layouts/`, `src/components/` |
+| Colors & typography | `src/styles/global.css` |
+| Profile photo | `public/images/profile.jpg` |
 
-1. Install Ruby and Bundler
-2. Clone this repository
-3. Run `bundle install`
-4. Run `bundle exec jekyll serve`
-5. Visit `http://localhost:4000`
+## Writing a blog post
 
-## Deployment
+Create a markdown file in `src/content/blog/`:
 
-This site is automatically deployed to GitHub Pages when changes are pushed to the main branch.
+```markdown
+---
+title: 'Post Title'
+description: 'One-line summary for listings and SEO.'
+pubDate: 2026-08-01
+category: tech        # any string — new categories just work
+tags: [optional, tags]
+draft: false          # true = excluded from the build
+---
 
-## Contact
+Content in markdown.
+```
 
-- Email: rajat.bhagat@gmail.com
-- LinkedIn: [linkedin.com/in/rajatbhagat](https://linkedin.com/in/rajatbhagat)
-- GitHub: [github.com/rajatbhagat](https://github.com/rajatbhagat)
+Push to `main` and GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys automatically.
 
-## License
+**Categories are extensible by design**: category pages (`/blog/category/<name>/`) are generated from whatever `category` values exist in published posts. To start a `books` or `travel` section, just write a post with that category.
 
-© 2024 Rajat Manish Bhagat. All rights reserved.
+A movie-review starter lives at `src/content/blog/movie-review-template.md` (kept as `draft: true`); copy it to write a review.
+
+## Custom domain (later)
+
+When you buy a domain: add a `CNAME` file to `public/`, configure the domain in the repo's Pages settings, and update `site` in `astro.config.mjs`.
