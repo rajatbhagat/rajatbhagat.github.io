@@ -1,4 +1,6 @@
 ---
+import site from '../data/site.json';
+
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/experience/', label: 'Experience' },
@@ -13,7 +15,7 @@ const isActive = (href: string) =>
 
 <header>
   <nav class="container">
-    <a href="/" class="brand">Rajat Bhagat</a>
+    <a href="/" class="brand">{site.brandName}</a>
     <ul>
       {
         navItems.map((item) => (

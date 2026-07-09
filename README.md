@@ -17,15 +17,32 @@ npm run preview    # preview the production build
 
 ## How to update things
 
+**All content is data — you never need to touch `.astro` files to update it.**
+
 | What | Where |
 |---|---|
-| Home page intro / skills / highlights | `src/pages/index.astro` |
-| Work experience & certifications | `src/data/experience.ts` |
-| Projects | `src/data/projects.ts` |
+| Name, tagline, contact links, skills, highlights, education, certifications | `src/data/site.json` |
+| Work experience | `src/content/experience/*.md` — one file per job; frontmatter = company/title/period, markdown body = the bullets. `order: 1` shows first |
+| Projects | `src/content/projects/*.md` — one file per project; frontmatter = name/tech/links, markdown body = description |
 | Blog posts | `src/content/blog/*.md` |
 | Site-wide layout, nav, footer | `src/layouts/`, `src/components/` |
 | Colors & typography | `src/styles/global.css` |
 | Profile photo | `public/images/profile.jpg` |
+
+Example: adding a new job = creating one markdown file in `src/content/experience/`:
+
+```markdown
+---
+company: New Company
+location: Chicago, US
+title: Staff Engineer
+period: Jul 2026 – Present
+order: 0
+---
+
+- First accomplishment bullet
+- Second accomplishment bullet
+```
 
 ## Writing a blog post
 

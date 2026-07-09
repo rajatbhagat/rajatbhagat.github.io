@@ -1,0 +1,49 @@
+{
+  "name": "Rajat Manish Bhagat",
+  "brandName": "Rajat Bhagat",
+  "heroGreeting": "Hi, I'm Rajat 👋",
+  "tagline": "Software engineer specializing in data platforms, cloud infrastructure, and backend systems. Most recently an Associate Principal Software Engineer on the Data Platform team at The Options Clearing Corporation.",
+  "openToCallout": "🔍 Open to new opportunities in the Data Platform space",
+  "location": "Chicago, USA",
+  "email": "rajat.bhagat@gmail.com",
+  "linkedin": "https://www.linkedin.com/in/rajatbhagat",
+  "github": "https://github.com/rajatbhagat",
+  "metaDescription": "Rajat Manish Bhagat — Software Engineer specializing in data platforms, cloud, and backend systems.",
+  "skills": [
+    {
+      "group": "Languages",
+      "items": "Java, Python, TypeScript, JavaScript, Terraform, Ansible, C"
+    },
+    {
+      "group": "Web & Frameworks",
+      "items": "Spring Boot, Node.js, React, Redux, Next.js, Django, JUnit"
+    },
+    {
+      "group": "Databases",
+      "items": "Snowflake, PostgreSQL, Oracle Database, MySQL, MongoDB"
+    },
+    {
+      "group": "Cloud & Tools",
+      "items": "AWS, Kafka, OpenShift, Oracle Cloud, Kubernetes, Docker, Jenkins, Git, Linux"
+    }
+  ],
+  "highlights": [
+    "7+ years of software engineering experience across fintech and cloud",
+    "Master's in Computer Science, Northeastern University (GPA: 4.0)",
+    "AWS Certified Solutions Architect – Associate (2025)",
+    "Oracle Cloud Infrastructure Associate Architect & Cloud Developer Professional (2023)",
+    "Impact Award recipient, 2 consecutive years at JP Morgan Chase"
+  ],
+  "education": {
+    "school": "Northeastern University, Boston",
+    "degree": "Master's in Computer Science",
+    "period": "Aug 2021 – May 2023",
+    "detail": "GPA: 4.0"
+  },
+  "certifications": [
+    "AWS Certified Solutions Architect – Associate (2025)",
+    "Oracle Cloud Infrastructure Associate Architect (2023)",
+    "Oracle Cloud Infrastructure Cloud Developer Professional (2023)",
+    "Impact Award for 2 consecutive years at JP Morgan Chase"
+  ]
+}

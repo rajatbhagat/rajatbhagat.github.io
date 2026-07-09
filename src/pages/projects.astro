@@ -1,31 +1,41 @@
 ---
+import { getCollection, render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { projects } from '../data/projects';
+import site from '../data/site.json';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const rendered = await Promise.all(
+  projects.map(async (project) => ({ project, Content: (await render(project)).Content }))
+);
 ---
 
 <BaseLayout
-  title="Projects — Rajat Manish Bhagat"
-  description="Selected personal and learning projects by Rajat Manish Bhagat."
+  title={`Projects — ${site.name}`}
+  description={`Selected personal and learning projects by ${site.name}.`}
 >
   <h1>Projects</h1>
   <p class="muted">
     A selection of personal projects. More on
-    <a href="https://github.com/rajatbhagat" target="_blank" rel="noopener">GitHub</a>.
+    <a href={site.github} target="_blank" rel="noopener">GitHub</a>.
   </p>
 
   <div class="grid">
     {
-      projects.map((project) => (
+      rendered.map(({ project, Content }) => (
         <article class="card">
-          <h2>{project.name}</h2>
-          <p class="desc muted">{project.description}</p>
+          <h2>{project.data.name}</h2>
+          <div class="desc muted">
+            <Content />
+          </div>
           <p class="tech">
-            {project.tech.map((t) => (
+            {project.data.tech.map((t) => (
               <span class="pill">{t}</span>
             ))}
           </p>
           <p class="links">
-            {project.links.map((link) => (
+            {project.data.links.map((link) => (
               <a href={link.url} target="_blank" rel="noopener">
                 {link.label} ↗
               </a>
@@ -63,6 +73,10 @@ import { projects } from '../data/projects';
     flex: 1;
     margin: 0 0 0.75rem;
     font-size: 0.95rem;
+  }
+
+  .desc :global(p) {
+    margin: 0 0 0.5rem;
   }
 
   .tech {

@@ -17,4 +17,30 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+// One markdown file per job in src/content/experience/.
+// Frontmatter holds the facts; the markdown body is the bullet list.
+// `order`: 1 = most recent, shown first.
+const experience = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/experience' }),
+  schema: z.object({
+    company: z.string(),
+    location: z.string(),
+    title: z.string(),
+    period: z.string(),
+    order: z.number(),
+  }),
+});
+
+// One markdown file per project in src/content/projects/.
+// The markdown body is the project description.
+const projects = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  schema: z.object({
+    name: z.string(),
+    tech: z.array(z.string()),
+    links: z.array(z.object({ label: z.string(), url: z.string() })),
+    order: z.number(),
+  }),
+});
+
+export const collections = { blog, experience, projects };

@@ -1,33 +1,40 @@
 ---
+import { getCollection, render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { roles, education, certifications } from '../data/experience';
+import site from '../data/site.json';
+
+const roles = (await getCollection('experience')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const rendered = await Promise.all(
+  roles.map(async (role) => ({ role, Content: (await render(role)).Content }))
+);
+const { education, certifications } = site;
 ---
 
 <BaseLayout
-  title="Experience — Rajat Manish Bhagat"
-  description="Professional experience of Rajat Manish Bhagat: OCC, Discover Financial Services, Mythics, and JP Morgan Chase."
+  title={`Experience — ${site.name}`}
+  description={`Professional experience of ${site.name}.`}
 >
   <h1>Experience</h1>
 
   <div class="timeline">
     {
-      roles.map((role) => (
+      rendered.map(({ role, Content }) => (
         <section class="card role">
           <div class="role-header">
             <div>
-              <h2>{role.company}</h2>
-              <p class="title">{role.title}</p>
+              <h2>{role.data.company}</h2>
+              <p class="title">{role.data.title}</p>
             </div>
             <div class="when muted">
-              <p>{role.period}</p>
-              <p>{role.location}</p>
+              <p>{role.data.period}</p>
+              <p>{role.data.location}</p>
             </div>
           </div>
-          <ul>
-            {role.bullets.map((b) => (
-              <li>{b}</li>
-            ))}
-          </ul>
+          <div class="bullets">
+            <Content />
+          </div>
         </section>
       ))
     }
@@ -89,12 +96,12 @@ import { roles, education, certifications } from '../data/experience';
     margin: 0;
   }
 
-  .role ul {
+  .bullets :global(ul) {
     margin: 1rem 0 0;
     padding-left: 1.25rem;
   }
 
-  .role li {
+  .bullets :global(li) {
     margin-bottom: 0.4rem;
     font-size: 0.95rem;
   }

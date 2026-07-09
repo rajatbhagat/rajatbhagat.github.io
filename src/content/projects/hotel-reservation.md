@@ -1,0 +1,12 @@
+---
+name: Hotel Reservation System
+tech: [Java, Spring Boot, React, MySQL]
+links:
+  - label: Backend
+    url: https://github.com/rajatbhagat/hotel-reservation-spring-boot
+  - label: Frontend
+    url: https://github.com/rajatbhagat/hotel-reservation-react-app
+order: 2
+---
+
+A full-stack hotel booking application with a Spring Boot REST backend and a React frontend covering room search, reservations, and booking management.

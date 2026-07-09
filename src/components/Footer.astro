@@ -1,14 +1,16 @@
 ---
+import site from '../data/site.json';
+
 const year = new Date().getFullYear();
 ---
 
 <footer>
   <div class="container">
     <p>
-      © {year} Rajat Manish Bhagat ·
-      <a href="mailto:rajat.bhagat@gmail.com">Email</a> ·
-      <a href="https://www.linkedin.com/in/rajatbhagat" target="_blank" rel="noopener">LinkedIn</a> ·
-      <a href="https://github.com/rajatbhagat" target="_blank" rel="noopener">GitHub</a>
+      © {year} {site.name} ·
+      <a href={`mailto:${site.email}`}>Email</a> ·
+      <a href={site.linkedin} target="_blank" rel="noopener">LinkedIn</a> ·
+      <a href={site.github} target="_blank" rel="noopener">GitHub</a>
     </p>
   </div>
 </footer>
