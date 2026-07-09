@@ -67,6 +67,13 @@ Push to `main` and GitHub Actions (`.github/workflows/deploy.yml`) builds and de
 
 A movie-review starter lives at `src/content/blog/movie-review-template.md` (kept as `draft: true`); copy it to write a review.
 
+## Ask-my-resume chatbot (WIP)
+
+A learning project: a Cloudflare Worker + Claude API chatbot grounded in this
+site's content. Scaffold in [`chatbot/`](chatbot/), build plan in
+[`docs/chatbot-plan.md`](docs/chatbot-plan.md), study guide in
+[`docs/chatbot-learning-plan.md`](docs/chatbot-learning-plan.md).
+
 ## Custom domain (later)
 
 When you buy a domain: add a `CNAME` file to `public/`, configure the domain in the repo's Pages settings, and update `site` in `astro.config.mjs`.
