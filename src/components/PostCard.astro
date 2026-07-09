@@ -1,11 +1,13 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { slugifyCategory } from '../utils/slug';
 
 interface Props {
   post: CollectionEntry<'blog'>;
 }
 
 const { post } = Astro.props;
+const categorySlug = slugifyCategory(post.data.category);
 const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
@@ -15,7 +17,7 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
 
 <article class="card">
   <div class="meta">
-    <a href={`/blog/category/${post.data.category}/`} class="pill">{post.data.category}</a>
+    <a href={`/blog/category/${categorySlug}/`} class="pill">{post.data.category}</a>
     <span class="muted">{dateStr}</span>
   </div>
   <h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>

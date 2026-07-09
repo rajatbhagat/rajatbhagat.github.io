@@ -7,13 +7,19 @@ const year = new Date().getFullYear();
 <footer>
   <div class="container">
     <p>
-      © {year} {site.name} ·
+      © <span id="copyright-year">{year}</span> {site.name} ·
       <a href={`mailto:${site.email}`}>Email</a> ·
       <a href={site.linkedin} target="_blank" rel="noopener">LinkedIn</a> ·
       <a href={site.github} target="_blank" rel="noopener">GitHub</a>
     </p>
   </div>
 </footer>
+
+<script>
+  // The build-time year goes stale on a static site; correct it client-side.
+  const el = document.getElementById('copyright-year');
+  if (el) el.textContent = String(new Date().getFullYear());
+</script>
 
 <style>
   footer {

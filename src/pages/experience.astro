@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import site from '../data/site.json';
 
 const roles = (await getCollection('experience')).sort(
-  (a, b) => a.data.order - b.data.order
+  (a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id)
 );
 const rendered = await Promise.all(
   roles.map(async (role) => ({ role, Content: (await render(role)).Content }))

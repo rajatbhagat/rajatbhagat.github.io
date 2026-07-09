@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { slugifyCategory } from '../../utils/slug';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -19,11 +20,11 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
 });
 ---
 
-<BaseLayout title={`${post.data.title} — Rajat Bhagat`} description={post.data.description}>
+<BaseLayout title={`${post.data.title} — Rajat Bhagat`} description={post.data.description} type="article">
   <article>
     <header>
       <p class="meta">
-        <a href={`/blog/category/${post.data.category}/`} class="pill">{post.data.category}</a>
+        <a href={`/blog/category/${slugifyCategory(post.data.category)}/`} class="pill">{post.data.category}</a>
         <span class="muted">{dateStr}</span>
       </p>
       <h1>{post.data.title}</h1>

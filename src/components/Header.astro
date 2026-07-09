@@ -8,7 +8,10 @@ const navItems = [
   { href: '/blog/', label: 'Blog' },
 ];
 
-const currentPath = Astro.url.pathname;
+// Normalize the trailing slash so /experience and /experience/ both match.
+const currentPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
 const isActive = (href: string) =>
   href === '/' ? currentPath === '/' : currentPath.startsWith(href);
 ---
@@ -20,7 +23,11 @@ const isActive = (href: string) =>
       {
         navItems.map((item) => (
           <li>
-            <a href={item.href} class:list={[{ active: isActive(item.href) }]}>
+            <a
+              href={item.href}
+              class:list={[{ active: isActive(item.href) }]}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
               {item.label}
             </a>
           </li>

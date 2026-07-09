@@ -2,26 +2,32 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import PostCard from '../../../components/PostCard.astro';
+import { slugifyCategory } from '../../../utils/slug';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
-  const categories = [...new Set(posts.map((p) => p.data.category))];
-  return categories.map((category) => ({
-    params: { category },
+  // Group by slug so "Movies" and "movies" are one category page.
+  const bySlug = new Map<string, { name: string; posts: typeof posts }>();
+  for (const post of posts) {
+    const slug = slugifyCategory(post.data.category);
+    const entry = bySlug.get(slug) ?? { name: post.data.category, posts: [] };
+    entry.posts.push(post);
+    bySlug.set(slug, entry);
+  }
+  return [...bySlug.entries()].map(([slug, { name, posts }]) => ({
+    params: { category: slug },
     props: {
-      posts: posts
-        .filter((p) => p.data.category === category)
-        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+      name,
+      posts: posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
     },
   }));
 }
 
-const { category } = Astro.params;
-const { posts } = Astro.props;
+const { name, posts } = Astro.props;
 ---
 
-<BaseLayout title={`${category} — Blog — Rajat Bhagat`} description={`Blog posts in the ${category} category.`}>
-  <h1><span class="muted">Category:</span> {category}</h1>
+<BaseLayout title={`${name} — Blog — Rajat Bhagat`} description={`Blog posts in the ${name} category.`}>
+  <h1><span class="muted">Category:</span> {name}</h1>
   <div class="post-list">
     {posts.map((post) => <PostCard post={post} />)}
   </div>
