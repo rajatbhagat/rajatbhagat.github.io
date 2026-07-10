@@ -64,11 +64,12 @@ period: Apr 2024 – Oct 2025
 order: 2
 ---
 
-- Spearheaded development and enhancement of Config Manager, a Python-based microservice orchestrating artifact generation and deployment of over 200,000 artifacts
-- Enhanced a custom reconciliation framework in Python enabling reusable validation controls, improving data quality assurance across 400 data pipelines
-- Led testing and integration of multiple source systems, coordinating with 5 cross-functional teams for seamless deployment and post-launch enhancements
-- Maintained the legacy Java-based Universal Data Loader processing 1M+ records daily, debugging issues and supporting AWS component integrations
-- Implemented OpenShift (OCP) deployments with Helm charts and Docker via custom Jenkins CI/CD pipelines for 15 microservices
+- Developed and enhanced the team's Python configuration-deployment microservice orchestrating generation and deployment of 200,000+ artifacts; designed and implemented its TOML-based deployment and grouped-DDL deployment features
+- Enhanced a custom reconciliation framework with reusable validation controls for custom reconciliation balances, improving data-quality assurance across 400 data pipelines
+- Led feature testing and post-production support for a monitoring-and-controls capability, coordinating with 5 cross-functional teams
+- Served as the subject-matter expert for the legacy enterprise data platform (1M+ records processed daily) through the post-acquisition data migration, leading working sessions with Capital One to identify unused legacy datasets and their owners
+- Mitigated the late-2025 AWS outage for the legacy platform, replaying 5,000+ data pipelines and 40,000+ files to ensure zero data loss
+- Led setup of Kafka streaming ingestion for the next-generation data ecosystem; drove the team's Datadog migration and vulnerability remediation; mentored a summer intern and served on the production-support roster
 
 
 ---
@@ -81,12 +82,13 @@ period: Jul 2018 – Jul 2021
 order: 4
 ---
 
-- Led development of a Trade Inquiry Chatbot on Symphony using Java Spring Boot, decreasing manual inquiries by 40%
-- Spearheaded automation of loan claim transactions and built a new ReactJS portal, achieving a 60% automation rate
-- Led a team of 3 developers building a Python document data extraction service extracting 40+ crucial data points
-- Implemented a document digitization application with 5 Java microservices processing 700+ transactions daily
-- Engineered an NLP service in Java Spring Boot with Apache OpenNLP and custom models, attaining 99% accuracy extracting keywords and codes from documents
-- Established Kafka as the communication medium between microservices; delivered 20 production releases
+- Core member of the team that built a trade-document digitization platform from the ground up — five Java/Python microservices communicating over Kafka (OCR, NLP, ML data extraction, audit trail, and a React/Redux application layer) — replacing manual compliance review and processing 700+ transactions daily
+- Built the Python OCR service with a multi-engine voting algorithm, extended it to multilingual OCR (Mandarin, Hindi), and migrated it to AWS EC2 with autoscaling groups and Ansible-automated provisioning
+- Developed the NLP service (Java Spring Boot, Apache OpenNLP plus custom-trained models) extracting entities, SWIFT and container codes, currencies, and amounts at 96% average accuracy
+- Led a team of 3 building document data extraction: per-document-type spaCy models trained on 3,000+ documents, plus a template-based extractor reaching 99% accuracy on standardized documents — work recognized with Impact Awards in 2018 and 2019
+- Built a trade-inquiry chatbot on Symphony (Java Spring Boot, AIML query mapping) that let operations teams self-serve transaction-document lookups, cutting manual inquiries by 40%
+- Automated straight-through processing of claim transactions on the bank's legacy trade platform using MuleSoft integrations and a spaCy model to flag high-value cases for review, automating 60% of transactions
+- Coordinated 20 production releases over two years, handling change management across multiple teams and clients
 
 
 ---
@@ -99,11 +101,11 @@ period: Jun 2023 – Mar 2024
 order: 3
 ---
 
-- Developed a real-time cloud cost monitoring portal using Next.js, Node.js, and Redux, reducing cloud expenses by 20%
-- Improved portal performance with Redis caching (1 min → 2 sec) and enabled scalability by deploying on Kubernetes as Docker images
-- Automated patching of Oracle Exadata machines with Ansible playbooks, saving 8+ hours of manual effort quarterly
-- Deployed a Jenkins pipeline triggered by JIRA ticket transitions, reducing patching time by 60% and enabling parallel patching
-- Orchestrated OCI resource provisioning for 4 customers using Terraform
+- Built FinOps automation ingesting OCI Cost & Usage reports for 24 tenancies (50,000+ records daily) into Oracle Database, reading tenancy credentials from OCI Vault under instance-scoped access policies so private keys were never stored locally
+- Developed the cost-monitoring portal (Next.js + TypeScript frontend, Node.js backend with TypeORM) generating reports over tables of 20M+ records; integrated Redis caching to cut report load times from ~1 minute to ~2 seconds; shipped as Docker images on Kubernetes
+- Delivered patching-as-a-service for Oracle Exadata systems: Ansible playbooks for asynchronous patch download, pre-checks, patching, and post-patch validation, orchestrated by a Jenkins pipeline driven from JIRA ticket transitions — cutting patching time by 60% and enabling parallel patching with minimal engineer monitoring
+- Shipped a weekly CIS-compliance security scan for OCI tenancies as a containerized OCI Function using policy-based auth (no stored credentials), reusable across any tenancy
+- Built a portal for dynamic surveys and workflows on the same Next.js/Node.js stack, and provisioned OCI infrastructure for multiple customers using Terraform and Ansible
 
 
 ---

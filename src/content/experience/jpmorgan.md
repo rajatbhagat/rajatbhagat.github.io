@@ -6,9 +6,10 @@ period: Jul 2018 – Jul 2021
 order: 4
 ---
 
-- Led development of a Trade Inquiry Chatbot on Symphony using Java Spring Boot, decreasing manual inquiries by 40%
-- Spearheaded automation of loan claim transactions and built a new ReactJS portal, achieving a 60% automation rate
-- Led a team of 3 developers building a Python document data extraction service extracting 40+ crucial data points
-- Implemented a document digitization application with 5 Java microservices processing 700+ transactions daily
-- Engineered an NLP service in Java Spring Boot with Apache OpenNLP and custom models, attaining 99% accuracy extracting keywords and codes from documents
-- Established Kafka as the communication medium between microservices; delivered 20 production releases
+- Core member of the team that built a trade-document digitization platform from the ground up — five Java/Python microservices communicating over Kafka (OCR, NLP, ML data extraction, audit trail, and a React/Redux application layer) — replacing manual compliance review and processing 700+ transactions daily
+- Built the Python OCR service with a multi-engine voting algorithm, extended it to multilingual OCR (Mandarin, Hindi), and migrated it to AWS EC2 with autoscaling groups and Ansible-automated provisioning
+- Developed the NLP service (Java Spring Boot, Apache OpenNLP plus custom-trained models) extracting entities, SWIFT and container codes, currencies, and amounts at 96% average accuracy
+- Led a team of 3 building document data extraction: per-document-type spaCy models trained on 3,000+ documents, plus a template-based extractor reaching 99% accuracy on standardized documents — work recognized with Impact Awards in 2018 and 2019
+- Built a trade-inquiry chatbot on Symphony (Java Spring Boot, AIML query mapping) that let operations teams self-serve transaction-document lookups, cutting manual inquiries by 40%
+- Automated straight-through processing of claim transactions on the bank's legacy trade platform using MuleSoft integrations and a spaCy model to flag high-value cases for review, automating 60% of transactions
+- Coordinated 20 production releases over two years, handling change management across multiple teams and clients
