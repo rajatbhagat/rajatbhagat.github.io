@@ -27,10 +27,18 @@ credits). Exercise 3's rate limit + off-topic gate protect that budget.
 ## Develop
 
 ```bash
-npm run dev                 # local worker at localhost:8787
+npm run dev                 # terminal 1: local worker at localhost:8787
 # For local secrets, create .dev.vars: OPENROUTER_API_KEY=sk-or-...
 
-curl -N localhost:8787/chat \
+npm run chat                # terminal 2: interactive chat REPL against the worker
+npm run chat -- "What did Rajat do at Discover?"          # one-shot
+CHAT_URL=https://<worker>.workers.dev/chat npm run chat   # against the deployed worker
+```
+
+Or raw curl (`-N` disables buffering so you see the stream arrive):
+
+```bash
+curl -N localhost:8787/chat \   # 8787 = the worker; 4321 is the Astro site
   -H 'Content-Type: application/json' \
   -d '{"question": "What did Rajat do at Discover?"}'
 ```
