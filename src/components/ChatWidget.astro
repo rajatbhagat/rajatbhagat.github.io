@@ -75,10 +75,30 @@ const endpoint =
 }
 
 <script>
-  // The floating wrapper carries transition:persist, so its node (listeners,
-  // chat history and all) survives view-transition navigations — the module
-  // runs once per full page load, which is exactly what we want.
-  document.querySelectorAll<HTMLElement>('.chat-widget').forEach(initChat);
+  // View transitions swap in fresh DOM without re-running this module, so
+  // init must re-run on every navigation (same pattern as the Header theme
+  // toggle). Nodes that survived a swap via transition:persist keep their
+  // listeners and are skipped via the data-chat-init marker.
+  function initAll() {
+    document
+      .querySelectorAll<HTMLElement>('.chat-widget:not([data-chat-init])')
+      .forEach((el) => {
+        el.dataset.chatInit = '';
+        initChat(el);
+      });
+  }
+  document.addEventListener('astro:page-load', initAll);
+
+  // One document-level listener (instead of one per init) so repeated
+  // navigations don't stack handlers; it closes whichever floating panel
+  // is currently in the DOM.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const panel = document.querySelector<HTMLElement>('.chat-floating .chat-panel');
+    if (panel && !panel.hidden) {
+      panel.querySelector<HTMLButtonElement>('.chat-close')?.click();
+    }
+  });
 
   // --- Minimal markdown renderer for model answers ---------------------
   // Escape-first, then apply a whitelisted subset (bold, italics, inline
@@ -213,9 +233,6 @@ const endpoint =
     } else {
       toggle!.addEventListener('click', () => setOpen(panel.hidden));
       root.querySelector('.chat-close')!.addEventListener('click', () => setOpen(false));
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !panel.hidden) setOpen(false);
-      });
     }
 
     form.addEventListener('submit', async (e) => {
