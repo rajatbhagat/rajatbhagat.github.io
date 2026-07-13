@@ -11,9 +11,11 @@ interface Props {
   title: string;
   description?: string;
   type?: 'website' | 'article';
+  /** Set on pages that embed their own chat (e.g. /chat) */
+  hideChatWidget?: boolean;
 }
 
-const { title, description = site.metaDescription, type = 'website' } = Astro.props;
+const { title, description = site.metaDescription, type = 'website', hideChatWidget = false } = Astro.props;
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(profileImg.src, Astro.site);
 ---
@@ -22,7 +24,7 @@ const ogImage = new URL(profileImg.src, Astro.site);
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={pageUrl} />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -64,6 +66,6 @@ const ogImage = new URL(profileImg.src, Astro.site);
       <slot />
     </main>
     <Footer />
-    <ChatWidget />
+    {!hideChatWidget && <ChatWidget />}
   </body>
 </html>

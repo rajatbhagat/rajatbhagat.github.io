@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import site from '../data/site.json';
+---
+
+<BaseLayout
+  title={`Chat — ${site.brandName}`}
+  description={`Ask an AI assistant about ${site.name}'s experience, skills, and projects.`}
+  hideChatWidget
+>
+  <h1 class="chat-page-title">Ask my resume</h1>
+  <p class="muted">
+    An AI assistant grounded in this site's content — ask about my experience,
+    skills, or projects. Answers are generated and may be imperfect; for
+    anything important, <a href={`mailto:${site.email}`}>reach me directly</a>.
+  </p>
+  <ChatWidget variant="page" />
+</BaseLayout>
+
+<style>
+  .chat-page-title {
+    margin: 2rem 0 0.5rem;
+  }
+</style>
