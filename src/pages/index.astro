@@ -20,7 +20,18 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       <p class="pill">{site.openToCallout}</p>
       <p class="cta">
         <a href={site.resume} class="btn" download="Rajat-Bhagat-Resume.pdf">Download Resume ↓</a>
+        {site.chatEndpoint && (
+          <a href="/chat/" class="btn btn-ghost">💬 Ask My Resume</a>
+        )}
       </p>
+      {
+        site.chatEndpoint && (
+          <p class="chat-hint muted">
+            In a hurry? My AI assistant can answer questions about my experience, skills, and
+            projects — <a href="/chat/">ask it anything</a>.
+          </p>
+        )
+      }
       <p class="links">
         <a href={`mailto:${site.email}`}>Email</a> ·
         <a href={site.linkedin} target="_blank" rel="noopener">LinkedIn</a> ·
@@ -93,6 +104,23 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .links {
     margin-top: 0.75rem;
     font-size: 0.95rem;
+  }
+
+  .cta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-ghost {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .chat-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    max-width: 42rem;
   }
 
   .skills {
