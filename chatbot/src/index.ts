@@ -1,4 +1,4 @@
-import { askModel } from './chat';
+import { askModel, QuotaError } from './chat';
 
 export interface Env {
   OPENROUTER_API_KEY: string;
@@ -62,6 +62,12 @@ export default {
       });
     } catch (err) {
       console.error(err);
+      if (err instanceof QuotaError) {
+        return new Response('Daily question limit reached — please try again tomorrow', {
+          status: 429,
+          headers: cors,
+        });
+      }
       return new Response('Something went wrong', { status: 500, headers: cors });
     }
   },
