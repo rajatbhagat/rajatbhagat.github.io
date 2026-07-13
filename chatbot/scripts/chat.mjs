@@ -15,7 +15,9 @@ async function ask(question) {
   try {
     res = await fetch(URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      // identity: node's fetch defaults to gzip, and wrangler dev buffers
+      // compressed responses — killing the visible streaming
+      headers: { 'Content-Type': 'application/json', 'Accept-Encoding': 'identity' },
       body: JSON.stringify({ question }),
     });
   } catch {
