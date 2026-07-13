@@ -100,6 +100,25 @@ const endpoint =
   }
   document.addEventListener('astro:page-load', initAll);
 
+  // The teaser greets every arrival on the home page (dismissal only lasts
+  // until the next home visit). Runs after initAll on each navigation;
+  // registered second, so the widget node already exists.
+  let teaserTimer: number | undefined;
+  function updateTeaser() {
+    clearTimeout(teaserTimer);
+    const widget = document.querySelector<HTMLElement>('.chat-widget.chat-floating');
+    const teaser = widget?.querySelector<HTMLElement>('.chat-teaser');
+    if (!teaser) return;
+    teaser.hidden = true;
+    const panel = widget!.querySelector<HTMLElement>('.chat-panel')!;
+    if (location.pathname === '/' && panel.hidden) {
+      teaserTimer = window.setTimeout(() => {
+        if (panel.hidden) teaser.hidden = false;
+      }, 1500);
+    }
+  }
+  document.addEventListener('astro:page-load', updateTeaser);
+
   // One document-level listener (instead of one per init) so repeated
   // navigations don't stack handlers; it closes whichever floating panel
   // is currently in the DOM.
@@ -248,13 +267,12 @@ const endpoint =
       }
     }
 
-    // Nudge first-time visitors toward the chat; stays dismissed once
-    // closed or once they've opened the chat.
+    // The teaser greets visitors on the home page (visibility is driven per
+    // navigation by updateTeaser below); dismissing hides it until the next
+    // home-page visit.
     const teaser = root.querySelector<HTMLElement>('.chat-teaser');
-    const TEASER_KEY = 'chat-teaser-dismissed';
     function dismissTeaser() {
       teaser?.setAttribute('hidden', '');
-      localStorage.setItem(TEASER_KEY, '1');
     }
 
     if (isPage) {
@@ -263,12 +281,7 @@ const endpoint =
     } else {
       toggle!.addEventListener('click', () => setOpen(panel.hidden));
       root.querySelector('.chat-close')!.addEventListener('click', () => setOpen(false));
-      if (teaser && !localStorage.getItem(TEASER_KEY)) {
-        teaser.querySelector('.chat-teaser-close')!.addEventListener('click', dismissTeaser);
-        setTimeout(() => {
-          if (panel.hidden && !localStorage.getItem(TEASER_KEY)) teaser.hidden = false;
-        }, 1500);
-      }
+      teaser?.querySelector('.chat-teaser-close')!.addEventListener('click', dismissTeaser);
     }
 
     form.addEventListener('submit', async (e) => {
