@@ -43,7 +43,8 @@ a design constraint; how much the *model* (vs. the prompt) matters.
    throttles it — this feeds the Phase 4 rate-limit design (your visitor
    budget must fit inside 50 requests/day unless you add $10 credit for the
    1,000/day tier).
-3. OpenRouter's superpower: `MODEL` is one line. Run your Session-1 question
+3. OpenRouter's superpower: swapping models is one entry in
+   `chatbot/src/models.ts` (the /chat page picker already exposes three). Run your Session-1 question
    set against 3–4 free models (the 550B Nemotron default, an ~80–120B MoE
    like `qwen/qwen3-next-80b-a3b-instruct:free` or `openai/gpt-oss-120b:free`,
    and something small like `nvidia/nemotron-nano-9b-v2:free`). Score them.
