@@ -24,6 +24,17 @@ function isDraft(markdown) {
 }
 
 const site = JSON.parse(await readFile(join(siteRoot, 'src/data/site.json'), 'utf8'));
+
+// Resolve relative URLs (like the resume PDF) against the production origin
+// from astro.config.mjs, so the model can hand out links that actually work.
+const astroConfig = await readFile(join(siteRoot, 'astro.config.mjs'), 'utf8');
+const origin = astroConfig.match(/site:\s*['"]([^'"]+)['"]/)?.[1];
+if (!origin) throw new Error('could not find `site` in astro.config.mjs');
+const profile = {
+  ...site,
+  siteUrl: origin,
+  resume: new URL(site.resume, origin).href,
+};
 const experience = await readDirMarkdown(join(siteRoot, 'src/content/experience'));
 const projects = await readDirMarkdown(join(siteRoot, 'src/content/projects'));
 const blog = (await readDirMarkdown(join(siteRoot, 'src/content/blog'))).filter(
@@ -31,7 +42,7 @@ const blog = (await readDirMarkdown(join(siteRoot, 'src/content/blog'))).filter(
 );
 
 const sections = [
-  `# Profile\n\n${JSON.stringify(site, null, 2)}`,
+  `# Profile\n\n${JSON.stringify(profile, null, 2)}`,
   `# Work Experience\n\n${experience.join('\n\n---\n\n')}`,
   `# Projects\n\n${projects.join('\n\n---\n\n')}`,
   `# Blog Posts\n\n${blog.join('\n\n---\n\n')}`,

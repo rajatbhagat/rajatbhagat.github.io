@@ -12,7 +12,7 @@ export const CORPUS = `# Profile
   "email": "rajat.bhagat@gmail.com",
   "linkedin": "https://www.linkedin.com/in/rmbhagat/",
   "github": "https://github.com/rajatbhagat",
-  "resume": "/Rajat-Bhagat-Resume.pdf",
+  "resume": "https://rajatbhagat.github.io/Rajat-Bhagat-Resume.pdf",
   "metaDescription": "Rajat Manish Bhagat — Software Engineer specializing in data platforms, cloud, and backend systems.",
   "skills": [
     {
@@ -50,7 +50,9 @@ export const CORPUS = `# Profile
     "Oracle Cloud Infrastructure Associate Architect (2023)",
     "Oracle Cloud Infrastructure Cloud Developer Professional (2023)",
     "Impact Award for 2 consecutive years at JP Morgan Chase"
-  ]
+  ],
+  "chatEndpoint": "https://ask-my-resume.rajat-bhagat.workers.dev/chat",
+  "siteUrl": "https://rajatbhagat.github.io"
 }
 
 

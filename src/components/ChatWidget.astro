@@ -122,7 +122,16 @@ const endpoint =
       .replace(
         /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
-      );
+      )
+      // Auto-link bare URLs the model didn't wrap in markdown. The prefix
+      // guard (start/whitespace/paren) skips URLs already inside the href="
+      // or >text</a> produced by the rule above; trailing punctuation stays
+      // outside the link.
+      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (_m, pre: string, url: string) => {
+        const clean = url.replace(/[.,;:!?]+$/, '');
+        const rest = url.slice(clean.length);
+        return `${pre}<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>${rest}`;
+      });
   }
 
   function renderMarkdown(md: string): string {
