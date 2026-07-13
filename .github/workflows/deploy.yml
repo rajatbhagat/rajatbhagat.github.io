@@ -44,3 +44,26 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  deploy-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chatbot/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: chatbot
+      - name: Rebuild corpus from site content
+        run: npm run build:corpus
+        working-directory: chatbot
+      - name: Deploy worker
+        run: npx wrangler deploy
+        working-directory: chatbot
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

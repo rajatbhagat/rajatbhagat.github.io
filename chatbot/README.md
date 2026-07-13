@@ -56,6 +56,6 @@ curl -N localhost:8787/chat \   # 8787 = the worker; 4321 is the Astro site
 
 ## After changing site content
 
-```bash
-npm run build:corpus && npm run deploy
-```
+Nothing — merging to `main` rebuilds the corpus and redeploys the worker via
+GitHub Actions (needs the `CLOUDFLARE_API_TOKEN` repo secret). For local
+testing, `npm run build:corpus && npm run deploy` still works.
