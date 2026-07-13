@@ -7,6 +7,9 @@ import type { Env } from "./index";
 // Swapping models is a one-line change: https://openrouter.ai/models?q=free
 export const MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
 
+/** The upstream LLM quota is exhausted — a "try again tomorrow", not a bug. */
+export class QuotaError extends Error {}
+
 /**
  * EXERCISE 1 (Phase 1) — design and build the system prompt.
  *
@@ -77,7 +80,14 @@ export async function askModel(
   });
 
   if (!res.ok || !res.body) {
-    throw new Error(`OpenRouter error ${res.status}: ${await res.text()}`);
+    const detail = await res.text();
+    // 429 = rate limited, 402 = out of credits: either way the request
+    // budget is spent — surface it as 429 so clients can say "come back
+    // tomorrow" instead of "something broke".
+    if (res.status === 429 || res.status === 402) {
+      throw new QuotaError(`OpenRouter quota exhausted (${res.status}): ${detail}`);
+    }
+    throw new Error(`OpenRouter error ${res.status}: ${detail}`);
   }
 
   const decoder = new TextDecoder();
