@@ -1,6 +1,14 @@
 ---
 import site from '../data/site.json';
 
+interface Props {
+  /** 'floating' = bubble + popup panel (default); 'page' = inline, always-open panel */
+  variant?: 'floating' | 'page';
+}
+
+const { variant = 'floating' } = Astro.props;
+const isPage = variant === 'page';
+
 // Dormant-by-default: the widget only renders when an endpoint is configured
 // in site.json. In dev it falls back to the local worker (`npm run dev` in
 // chatbot/) so it can be tested without touching config.
@@ -9,12 +17,26 @@ const endpoint =
 ---
 
 {
-  endpoint && (
-    <div class="chat-widget" data-endpoint={endpoint} transition:persist="chat-widget">
-      <section class="chat-panel" hidden aria-label="Resume chat">
+  endpoint ? (
+    <div
+      class:list={['chat-widget', isPage ? 'chat-page' : 'chat-floating']}
+      data-endpoint={endpoint}
+      transition:persist={isPage ? 'chat-page' : 'chat-widget'}
+    >
+      <section class="chat-panel" hidden={!isPage} aria-label="Resume chat">
         <header class="chat-head">
-          <strong>Ask my resume</strong>
-          <span class="chat-sub muted">AI answers based on this site's content</span>
+          <div class="chat-head-text">
+            <strong>Ask my resume</strong>
+            <span class="chat-sub muted">AI answers based on this site's content</span>
+          </div>
+          {!isPage && (
+            <button class="chat-close" type="button" aria-label="Close chat">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </header>
         <div class="chat-log" aria-live="polite" />
         <form class="chat-form">
@@ -35,25 +57,28 @@ const endpoint =
           </button>
         </form>
       </section>
-      <button class="chat-toggle" aria-label="Chat about my experience" aria-expanded="false">
-        <svg class="icon-open" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-        </svg>
-        <svg class="icon-close" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
+      {!isPage && (
+        <button class="chat-toggle" aria-label="Chat about my experience" aria-expanded="false">
+          <svg class="icon-open" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          <svg class="icon-close" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      )}
     </div>
+  ) : (
+    isPage && <p class="muted">The chat assistant is offline right now — please check back later.</p>
   )
 }
 
 <script>
-  // The wrapper carries transition:persist, so this node (listeners, chat
-  // history and all) survives view-transition navigations — the module runs
-  // once per full page load, which is exactly what we want.
-  const root = document.querySelector<HTMLElement>('.chat-widget');
-  if (root) initChat(root);
+  // The floating wrapper carries transition:persist, so its node (listeners,
+  // chat history and all) survives view-transition navigations — the module
+  // runs once per full page load, which is exactly what we want.
+  document.querySelectorAll<HTMLElement>('.chat-widget').forEach(initChat);
 
   // --- Minimal markdown renderer for model answers ---------------------
   // Escape-first, then apply a whitelisted subset (bold, italics, inline
@@ -144,8 +169,9 @@ const endpoint =
   }
 
   function initChat(root: HTMLElement) {
+    const isPage = root.classList.contains('chat-page');
     const endpoint = root.dataset.endpoint!;
-    const toggle = root.querySelector<HTMLButtonElement>('.chat-toggle')!;
+    const toggle = root.querySelector<HTMLButtonElement>('.chat-toggle');
     const panel = root.querySelector<HTMLElement>('.chat-panel')!;
     const log = root.querySelector<HTMLElement>('.chat-log')!;
     const form = root.querySelector<HTMLFormElement>('.chat-form')!;
@@ -163,22 +189,34 @@ const endpoint =
       return div;
     }
 
+    function greet() {
+      if (greeted) return;
+      greeted = true;
+      addMsg('bot', "Hi! Ask me anything about Rajat's experience, skills, or projects.");
+    }
+
     function setOpen(open: boolean) {
       panel.hidden = !open;
-      toggle.setAttribute('aria-expanded', String(open));
+      toggle?.setAttribute('aria-expanded', String(open));
+      // Lets CSS lock background scroll while the mobile full-screen
+      // panel is open (floating variant only).
+      document.body.classList.toggle('chat-widget-open', open && !isPage);
       if (open) {
-        if (!greeted) {
-          greeted = true;
-          addMsg('bot', "Hi! Ask me anything about Rajat's experience, skills, or projects.");
-        }
+        greet();
         input.focus();
       }
     }
 
-    toggle.addEventListener('click', () => setOpen(panel.hidden));
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !panel.hidden) setOpen(false);
-    });
+    if (isPage) {
+      // Always open; no keyboard-popping autofocus on page load.
+      greet();
+    } else {
+      toggle!.addEventListener('click', () => setOpen(panel.hidden));
+      root.querySelector('.chat-close')!.addEventListener('click', () => setOpen(false));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !panel.hidden) setOpen(false);
+      });
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -238,7 +276,7 @@ const endpoint =
     at runtime, and Astro's scoped styles only match elements rendered from
     this template — dynamically created nodes would be unstyled. */}
 <style is:global>
-  .chat-widget {
+  .chat-widget.chat-floating {
     position: fixed;
     right: 1.25rem;
     bottom: 1.25rem;
@@ -247,6 +285,11 @@ const endpoint =
     flex-direction: column;
     align-items: flex-end;
     gap: 0.75rem;
+  }
+
+  .chat-widget.chat-page {
+    display: block;
+    margin: 1.5rem 0 2.5rem;
   }
 
   .chat-widget .chat-toggle {
@@ -276,15 +319,24 @@ const endpoint =
   }
 
   .chat-widget .chat-panel {
-    width: min(420px, calc(100vw - 2.5rem));
-    height: min(600px, 75vh);
     display: flex;
     flex-direction: column;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
     overflow: hidden;
+  }
+
+  .chat-floating .chat-panel {
+    width: min(420px, calc(100vw - 2.5rem));
+    height: min(600px, 75vh);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .chat-page .chat-panel {
+    width: 100%;
+    height: min(72dvh, 720px);
+    min-height: 420px;
   }
 
   .chat-widget .chat-panel[hidden] {
@@ -296,7 +348,28 @@ const endpoint =
     border-bottom: 1px solid var(--border);
     background: var(--bg-soft);
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .chat-widget .chat-head-text {
+    display: flex;
     flex-direction: column;
+  }
+
+  .chat-widget .chat-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.3rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .chat-widget .chat-close:hover {
+    color: var(--text);
   }
 
   .chat-widget .chat-sub {
@@ -306,6 +379,7 @@ const endpoint =
   .chat-widget .chat-log {
     flex: 1;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 1rem;
     display: flex;
     flex-direction: column;
@@ -319,6 +393,11 @@ const endpoint =
     font-size: 0.92rem;
     line-height: 1.55;
     overflow-wrap: anywhere;
+  }
+
+  .chat-page .msg {
+    max-width: 75ch;
+    font-size: 0.95rem;
   }
 
   .chat-widget .msg.user {
@@ -391,7 +470,8 @@ const endpoint =
     background: var(--bg);
     color: var(--text);
     font: inherit;
-    font-size: 0.92rem;
+    /* 16px minimum: anything smaller makes iOS Safari auto-zoom on focus */
+    font-size: 1rem;
   }
 
   .chat-widget .chat-input:focus {
@@ -415,15 +495,31 @@ const endpoint =
     cursor: default;
   }
 
-  @media (max-width: 480px) {
-    .chat-widget {
-      right: 0.75rem;
-      bottom: 0.75rem;
+  /* On phones the floating panel becomes a full-screen sheet: a fixed
+     bottom-anchored box fights the on-screen keyboard (the visual viewport
+     shrinks and the panel gets shoved half off-screen). dvh tracks the
+     keyboard/URL-bar; the header close button is the way out. */
+  @media (max-width: 640px) {
+    .chat-floating .chat-panel {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      border: none;
+      border-radius: 0;
     }
 
-    .chat-widget .chat-panel {
-      width: calc(100vw - 1.5rem);
-      height: min(600px, 78vh);
+    .chat-floating .chat-toggle[aria-expanded='true'] {
+      display: none;
+    }
+
+    .chat-floating .chat-form {
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+
+    body.chat-widget-open {
+      overflow: hidden;
     }
   }
 </style>
