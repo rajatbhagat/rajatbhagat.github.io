@@ -46,8 +46,11 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
   (would make a great blog post)
 
 ### Phase 3 — Widget on the site
-- [ ] Astro island: chat bubble → panel, `fetch` + streamed rendering
-- [ ] CORS locked to the production origin (+ future custom domain)
+- [x] Astro island: chat bubble → panel, `fetch` + streamed rendering —
+      `src/components/ChatWidget.astro`. Dormant in production until
+      `chatEndpoint` is set in `src/data/site.json`; in dev it talks to the
+      local worker automatically. Don't enable before Phase 4.
+- [x] CORS locked to the production origin (+ future custom domain)
 - **Verify:** works on the live site from a clean browser profile
 
 ### Phase 4 — Hardening (before linking it anywhere)
