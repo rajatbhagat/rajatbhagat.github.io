@@ -1,5 +1,7 @@
 # rajatbhagat.github.io
 
+[![Deploy to GitHub Pages](https://github.com/rajatbhagat/rajatbhagat.github.io/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/rajatbhagat/rajatbhagat.github.io/actions/workflows/deploy.yml)
+
 Personal portfolio + blog, built with [Astro](https://astro.build) and deployed to GitHub Pages.
 
 Live at **https://rajatbhagat.github.io**
