@@ -1,15 +1,20 @@
 {
-  // Cloudflare Worker config — https://developers.cloudflare.com/workers/wrangler/configuration/
-  "name": "ask-my-resume",
-  "account_id": "f03472768f943ae9d8369ebaa033fbf4",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-07-01",
-  "compatibility_flags": ["nodejs_compat"]
-
-  // Phase 2 (RAG): uncomment after `wrangler vectorize create resume-index --dimensions=768 --metric=cosine`
-  // "vectorize": [{ "binding": "VECTORIZE", "index_name": "resume-index" }],
-  // "ai": { "binding": "AI" }
-
-  // Phase 4 (rate limiting): uncomment after `wrangler kv namespace create RATE_LIMIT`
-  // "kv_namespaces": [{ "binding": "RATE_LIMIT", "id": "<id from wrangler>" }]
+	// Cloudflare Worker config — https://developers.cloudflare.com/workers/wrangler/configuration/
+	"name": "ask-my-resume",
+	"account_id": "f03472768f943ae9d8369ebaa033fbf4",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	// Phase 2 (RAG): uncomment after `wrangler vectorize create resume-index --dimensions=768 --metric=cosine`
+	// "vectorize": [{ "binding": "VECTORIZE", "index_name": "resume-index" }],
+	// "ai": { "binding": "AI" }
+	// Phase 4 (rate limiting): uncomment after `wrangler kv namespace create RATE_LIMIT`
+	"kv_namespaces": [
+		{
+			"binding": "RATE_LIMIT",
+			"id": "9cb14ebfbca14a9d9ecd0c345e496aed"
+		}
+	]
 }
