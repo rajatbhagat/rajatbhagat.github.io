@@ -49,7 +49,7 @@ const endpoint =
                 aria-haspopup="listbox"
                 aria-expanded="false"
                 aria-label="Choose the AI model"
-                title={MODELS[DEFAULT_MODEL].label}
+                title={`Switch model (current: ${MODELS[DEFAULT_MODEL].label})`}
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="4" y="4" width="16" height="16" rx="2" />
@@ -308,7 +308,7 @@ const endpoint =
       for (const option of options) {
         option.addEventListener('click', () => {
           modelKey = option.dataset.model;
-          modelBtn.title = option.textContent!.trim();
+          modelBtn.title = `Switch model (current: ${option.textContent!.trim()})`;
           for (const o of options) o.setAttribute('aria-selected', String(o === option));
           setMenu(false);
         });
