@@ -17,7 +17,7 @@ failures are the curriculum.
 | 3 — Chunking & embeddings | ⬜ Not started |
 | 4 — Retrieval & evaluation | ⬜ Not started — still the core learning session |
 | 5 — The widget | ✅ Built during development — the exercise is now to *read* it |
-| 6 — Hardening | 🔴 **Do next** — the bot is public and linked from the homepage |
+| 6 — Hardening | 🟡 Per-IP rate limiting shipped (July 14); off-topic gate + red-teaming remain |
 
 The build order ended up 1 → 5 → 6, not 1 → 2 → 3: the widget shipped early
 (and grew a model picker, `/ask-my-resume` page, and CI deploys), which makes
@@ -142,23 +142,37 @@ each one shipped and was found by a user (you):
 4. Why markdown is rendered escape-first and links are https-only (a
    prompt-injected model is an untrusted content source in your page).
 
-## Session 6 — Hardening (Exercise 3) 🔴 do this next
+## Session 6 — Hardening (Exercise 3) 🟡 rate limiting done, gate open
 
-The bot is now advertised on the homepage with no per-IP limit and no gate —
-only the URL's obscurity ever protected the ~50 req/day budget, and that's
-gone. One piece exists already: upstream 429/402 maps to an honest client
-429 (`QuotaError` in `index.ts`), so your work is the per-IP KV counter and
-the gate in front of the flagship call.
+**Done (July 14):** the per-IP daily counter, written and debugged by hand —
+50/day per IP, date-in-the-key fixed window (`rate-limit:<ip>:<YYYY-MM-DD>`),
+48h TTL as garbage collection, 429 with CORS. Lessons that made it worth
+doing manually:
 
-**Build:** KV rate limiting; an off-topic gate; abuse review.
+- The Cloudflare *Rate Limiting binding* and a *KV namespace* are different
+  products; hand-typed `Env` interfaces let the compiler bless code the
+  runtime rejects (`wrangler types` generates truthful ones).
+- The key defines the window; the TTL is only garbage collection and must
+  outlive the window. `floor(now / windowSize)` is the universal bucket.
+- Counter boundaries (`>` vs `>=`) are provable with a curl loop of
+  empty-body requests — they increment the counter but 400-out before
+  reaching the LLM, so boundary testing costs zero quota.
+- `wrangler kv` CLI commands default to the **local** simulator; pass
+  `--remote` for production. And a `"remote": true` binding makes local dev
+  write production data — removed after it turned test runs into prod state.
+
+Also already in place: upstream 429/402 maps to an honest client 429
+(`QuotaError` in `index.ts`).
+
+**Build (remaining):** the off-topic gate; abuse review.
 
 **Concepts:** untrusted clients; cost-based abuse (a public LLM endpoint is
 a free LLM for anyone who finds it); KV counters with TTL; defense in depth
 (topic gate + rate limit + max_tokens + question length).
 
 **Do:**
-1. Per-IP daily counter in Workers KV; 429 past the limit; verify with curl
-   in a loop.
+1. ~~Per-IP daily counter in Workers KV; 429 past the limit; verify with
+   curl in a loop.~~ ✅ Done.
 2. **Off-topic gate** — refuse questions that aren't about Rajat *before*
    the main model call, so abusers can't use your endpoint as a free
    general-purpose LLM and drain your daily request budget (or your wallet,
