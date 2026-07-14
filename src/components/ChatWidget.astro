@@ -1,5 +1,6 @@
 ---
 import site from '../data/site.json';
+import { MODELS, DEFAULT_MODEL } from '../../chatbot/src/models';
 
 interface Props {
   /** 'floating' = bubble + popup panel (default); 'page' = inline, always-open panel */
@@ -29,6 +30,18 @@ const endpoint =
             <strong>Ask my resume</strong>
             <span class="chat-sub muted">AI answers based on this site's content</span>
           </div>
+          {isPage && (
+            <label class="chat-model">
+              <span class="muted">Model</span>
+              <select class="chat-model-select" aria-label="Choose the AI model">
+                {Object.entries(MODELS).map(([key, m]) => (
+                  <option value={key} selected={key === DEFAULT_MODEL}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {!isPage && (
             <button class="chat-close" type="button" aria-label="Close chat">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -236,6 +249,7 @@ const endpoint =
     const form = root.querySelector<HTMLFormElement>('.chat-form')!;
     const input = root.querySelector<HTMLInputElement>('.chat-input')!;
     const send = root.querySelector<HTMLButtonElement>('.chat-send')!;
+    const modelSelect = root.querySelector<HTMLSelectElement>('.chat-model-select');
     let busy = false;
     let greeted = false;
 
@@ -304,12 +318,12 @@ const endpoint =
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({ question, model: modelSelect?.value }),
         });
         if (!res.ok || !res.body) {
           fail(
             res.status === 429
-              ? "I've hit my answer limit for today — please try again tomorrow, or reach Rajat by email."
+              ? "I've hit my free usage limit right now — try again in a few minutes (on the chat page you can also switch models), or reach Rajat by email."
               : 'Something went wrong — please try again in a moment.',
           );
           return;
@@ -463,6 +477,24 @@ const endpoint =
   .chat-widget .chat-head-text {
     display: flex;
     flex-direction: column;
+  }
+
+  .chat-widget .chat-model {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .chat-widget .chat-model-select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.4rem;
+    font: inherit;
+    font-size: 0.8rem;
   }
 
   .chat-widget .chat-close {

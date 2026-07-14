@@ -1,11 +1,6 @@
 import { CORPUS } from "./corpus.generated";
+import { MODELS, type ModelKey } from "./models";
 import type { Env } from "./index";
-
-// Best free model on OpenRouter as of July 2026: NVIDIA's flagship open MoE
-// (550B params / 55B active, 1M context). $0 per token; account-level limits
-// apply (~20 req/min, 50 req/day — 1,000/day with $10 credit purchased).
-// Swapping models is a one-line change: https://openrouter.ai/models?q=free
-export const MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
 
 /** The upstream LLM quota is exhausted — a "try again tomorrow", not a bug. */
 export class QuotaError extends Error {}
@@ -60,6 +55,7 @@ export function buildSystemPrompt(): string {
 export async function askModel(
   env: Env,
   question: string,
+  model: ModelKey,
 ): Promise<ReadableStream<Uint8Array>> {
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -70,7 +66,7 @@ export async function askModel(
       "X-Title": "Ask My Resume",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: MODELS[model].id,
       max_tokens: 1024,
       stream: true,
       messages: [

@@ -1,4 +1,5 @@
 import { askModel, QuotaError } from './chat';
+import { DEFAULT_MODEL, isModelKey } from './models';
 
 export interface Env {
   OPENROUTER_API_KEY: string;
@@ -40,8 +41,9 @@ export default {
     // using a counter in Workers KV before doing anything expensive.
 
     let question: unknown;
+    let model: unknown;
     try {
-      ({ question } = (await request.json()) as { question?: unknown });
+      ({ question, model } = (await request.json()) as { question?: unknown; model?: unknown });
     } catch {
       return new Response('Body must be JSON: {"question": "..."}', { status: 400, headers: cors });
     }
@@ -55,15 +57,19 @@ export default {
       });
     }
 
+    // Anything not on the allowlist (including absent) falls back to the
+    // default — the client can never name an arbitrary OpenRouter model.
+    const modelKey = isModelKey(model) ? model : DEFAULT_MODEL;
+
     try {
-      const stream = await askModel(env, question.trim());
+      const stream = await askModel(env, question.trim(), modelKey);
       return new Response(stream, {
         headers: { ...cors, 'Content-Type': 'text/plain; charset=utf-8' },
       });
     } catch (err) {
       console.error(err);
       if (err instanceof QuotaError) {
-        return new Response('Daily question limit reached — please try again tomorrow', {
+        return new Response('Free AI quota is busy or spent — try again in a few minutes, or tomorrow', {
           status: 429,
           headers: cors,
         });
