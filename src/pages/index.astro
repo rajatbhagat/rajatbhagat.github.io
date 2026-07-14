@@ -21,14 +21,14 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       <p class="cta">
         <a href={site.resume} class="btn" download="Rajat-Bhagat-Resume.pdf">Download Resume ↓</a>
         {site.chatEndpoint && (
-          <a href="/chat/" class="btn btn-ghost">💬 Ask My Resume</a>
+          <a href="/ask-my-resume/" class="btn btn-ghost">💬 Ask My Resume</a>
         )}
       </p>
       {
         site.chatEndpoint && (
           <p class="chat-hint muted">
             In a hurry? My AI assistant can answer questions about my experience, skills, and
-            projects — <a href="/chat/">ask it anything</a>.
+            projects — <a href="/ask-my-resume/">ask it anything</a>.
           </p>
         )
       }

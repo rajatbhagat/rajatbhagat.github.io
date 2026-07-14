@@ -6,4 +6,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://rajatbhagat.github.io',
   integrations: [sitemap()],
+  redirects: {
+    '/chat/': '/ask-my-resume/',
+  },
 });
