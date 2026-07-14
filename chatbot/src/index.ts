@@ -4,12 +4,11 @@ import { DEFAULT_MODEL, isModelKey } from './models';
 export interface Env {
   OPENROUTER_API_KEY: string;
   // Phase 2 (RAG): AI: Ai; VECTORIZE: VectorizeIndex;
-  // Phase 4 (rate limiting): RATE_LIMIT: KVNamespace;
+  RATE_LIMIT: KVNamespace;
 }
 
 const ALLOWED_ORIGINS = new Set([
-  'https://rajatbhagat.github.io',
-  'http://localhost:4321', // astro dev server
+  'https://rajatbhagat.github.io'
 ]);
 
 const MAX_QUESTION_LENGTH = 500;
@@ -37,8 +36,19 @@ export default {
       return new Response('Not found', { status: 404, headers: cors });
     }
 
-    // TODO(exercise, Phase 4): rate-limit by IP (request.headers.get('CF-Connecting-IP'))
-    // using a counter in Workers KV before doing anything expensive.
+    // Rate limiting: allow 50 requests per user per day (based on IP address)
+    const user_ip = request.headers.get("CF-Connecting-IP") ?? 'unknown';
+    const current_date = new Date().toISOString().slice(0, 10);
+    const key = `rate-limit:${user_ip}:${current_date}`;
+    const user_request_count = await env.RATE_LIMIT.get(key) || '0'; // key can be any string of your choosing
+    
+    if (Number(user_request_count) > 50) {
+      return new Response(
+        `429 Failure – Rate limit exceeded for user`,
+        { status: 429, headers: cors },
+      );
+    }
+    await env.RATE_LIMIT.put(key, Number(user_request_count) + 1 + "", { expirationTtl: 60 * 60 * 48 });
 
     let question: unknown;
     let model: unknown;
