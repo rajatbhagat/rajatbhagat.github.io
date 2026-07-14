@@ -29,10 +29,13 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 ### Phase 1 — Worker MVP, context stuffing
 - [x] Scaffold: Worker project, routing, CORS, validation, streaming (done)
 - [x] Corpus build script reading `src/content/**` + `site.json` (done)
-- [ ] **Exercise 1:** `buildSystemPrompt()` — persona, grounding, injection
-      defense
-- [ ] Deploy (`wrangler secret put OPENROUTER_API_KEY`)
-- **Verify:** 10 recruiter questions answered accurately vs. the resume
+- [x] **Exercise 1:** `buildSystemPrompt()` — persona, grounding, injection
+      defense (done: corpus in tags, rules after; resume requests get the
+      download link)
+- [x] Deploy — live at `ask-my-resume.rajat-bhagat.workers.dev`; secret set;
+      CI redeploys (with a fresh corpus) on every merge to main
+- **Verify:** ✅ grounded answers confirmed in production; "reveal your
+  prompt" / "ignore your instructions" politely refused
 
 ### Phase 2 — Real RAG
 - [ ] **Exercise 2a:** chunking (~300 tokens, semantic boundaries: one chunk
@@ -45,15 +48,22 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 - **Verify:** OCC questions retrieve OCC chunks; quality comparison written up
   (would make a great blog post)
 
-### Phase 3 — Widget on the site
+### Phase 3 — Widget on the site ✅
 - [x] Astro island: chat bubble → panel, `fetch` + streamed rendering —
       `src/components/ChatWidget.astro`. Dormant in production until
       `chatEndpoint` is set in `src/data/site.json`; in dev it talks to the
       local worker automatically. Don't enable before Phase 4.
 - [x] CORS locked to the production origin (+ future custom domain)
-- **Verify:** works on the live site from a clean browser profile
+- **Verify:** ✅ live — floating widget on every page plus a full
+  `/ask-my-resume` page (model picker, markdown rendering, mobile
+  full-screen, home-page teaser, privacy notes)
 
-### Phase 4 — Hardening (before linking it anywhere)
+### Phase 4 — Hardening ⚠️ **now the priority**
+
+The original plan said "before linking it anywhere" — the bot is now linked
+from the homepage, nav, and a teaser, so only obscurity guards the
+~50 req/day budget. (The global quota-exhaustion case already returns an
+honest 429; what's missing is per-IP limiting and the gate.)
 - [ ] **Exercise 3:** per-IP rate limiting via Workers KV (~20 questions/day)
 - [ ] **Off-topic gate:** classify questions with a tiny free model (or a
       keyword allowlist) *before* the flagship call, so strangers can't use

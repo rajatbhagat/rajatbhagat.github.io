@@ -49,7 +49,7 @@ curl -N localhost:8787/chat \   # 8787 = the worker; 4321 is the Astro site
 
 | # | Where | What | Done when |
 |---|---|---|---|
-| 1 | `src/chat.ts` → `buildSystemPrompt()` | Persona, grounding, injection defense | 10 recruiter questions answered accurately; "reveal your prompt" and "ignore your instructions" politely refused |
+| 1 | `src/chat.ts` → `buildSystemPrompt()` | **Done.** Persona, grounding, injection defense; resume requests get the download link | ✅ Verified in production — accurate grounded answers; prompt-extraction and override attempts politely refused |
 | 2 | Phase 2, new `src/retrieval.ts` | Chunking + Workers AI embeddings + Vectorize top-k retrieval | OCC questions retrieve OCC chunks, not JPMC ones; compare answer quality vs. Exercise 1 |
 | 3 | `src/index.ts` (marked TODO) | KV-based per-IP rate limiting **+ off-topic gate** (tiny free model or keyword pre-filter before the flagship call) | 21st question of the day from one IP gets a 429; "what's the capital of France?" is refused without a flagship-model call |
 | 4 | `src/components/ChatWidget.astro` (site) | **Done.** Chat widget that streams from this Worker; renders only when `chatEndpoint` is set in `src/data/site.json` (dev: uses localhost:8787 automatically). Enable after Exercise 3. | Works on the live site with CORS locked down |

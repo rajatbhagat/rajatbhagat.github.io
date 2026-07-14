@@ -8,7 +8,28 @@ The rule for this project: **don't copy a working prompt or retrieval
 implementation from a tutorial.** Write it, watch it fail, fix it. The
 failures are the curriculum.
 
-## Session 1 — Prompt design & grounding (Exercise 1)
+## Status — July 14, 2026
+
+| Session | Status |
+|---|---|
+| 1 — Prompt design & grounding | ✅ Done — prompt live in production, injection tests pass |
+| 2 — Streaming, rate limits & models | 🟡 Half-earned by debugging real bugs; formal model scoring still open |
+| 3 — Chunking & embeddings | ⬜ Not started |
+| 4 — Retrieval & evaluation | ⬜ Not started — still the core learning session |
+| 5 — The widget | ✅ Built during development — the exercise is now to *read* it |
+| 6 — Hardening | 🔴 **Do next** — the bot is public and linked from the homepage |
+
+The build order ended up 1 → 5 → 6, not 1 → 2 → 3: the widget shipped early
+(and grew a model picker, `/ask-my-resume` page, and CI deploys), which makes
+hardening urgent and RAG the remaining deep-learning arc. Sessions 3–4 lose
+nothing by waiting; Session 6 loses your request budget by waiting.
+
+## Session 1 — Prompt design & grounding (Exercise 1) ✅
+
+**Done.** The prompt (corpus in `<corpus>` tags, rules after) answers
+grounded, refuses injection/extraction attempts in production, and hands out
+the resume download link on request. Keep the question list you used — it's
+the regression suite for Sessions 2 and 4.
 
 **Build:** `buildSystemPrompt()` in `chatbot/src/chat.ts`.
 
@@ -27,7 +48,16 @@ refusal behavior; why the untrusted-input boundary matters.
 corpus works better or worse than before it — from your own experiments, not
 a blog post.
 
-## Session 2 — Streaming, rate limits & model comparison
+## Session 2 — Streaming, rate limits & model comparison 🟡
+
+**Partly earned in the field.** Debugging real incidents covered much of
+this session: the SSE parse got dissected fixing wrangler-dev's gzip
+buffering (chat REPL showed one giant chunk); the ~8–25s first-token silence
+turned out to be reasoning-model thinking (`delta.reasoning` is discarded);
+and Gemma 31B's chronic upstream 429s proved per-model saturation is
+distinct from your daily budget. **Still open:** step 3 below — score your
+Session-1 question set across the three models, which the `/ask-my-resume`
+picker (backed by `chatbot/src/models.ts`) now makes trivial.
 
 **Build:** nothing new — instrument and experiment with what exists.
 
@@ -93,19 +123,32 @@ between chunk size and retrieval precision, with an example of each failing.
 is and isn't worth it. This is the single most useful interview answer this
 project produces.
 
-## Session 5 — The widget (Exercise 4)
+## Session 5 — The widget (Exercise 4) ✅ (built — now a reading exercise)
 
-**Build:** an Astro island chat panel on the site.
+**Built during development** (`src/components/ChatWidget.astro`): floating
+widget + `/ask-my-resume` page from one component (`variant` prop), streamed
+rendering, an escape-first markdown subset renderer, mobile full-screen
+sheet, model-picker popover, home-page teaser.
 
-**Concepts:** islands architecture (this is the site's first real
-client-side JS); reading a streamed body with `ReadableStream`; optimistic
-UI; CORS in practice.
+**The exercise now: read it until you can explain its four real bugs** —
+each one shipped and was found by a user (you):
 
-**Do:** chat bubble → panel; POST to the Worker; render the stream
-incrementally; handle errors and empty states. Test from the deployed site,
-not just localhost — CORS bugs only show up cross-origin.
+1. Why Astro's scoped styles never matched the JS-created message bubbles
+   (and why `<style is:global>` namespaced under `.chat-widget` fixes it).
+2. Why the send button did nothing after client-side navigation (view
+   transitions swap DOM without re-running module scripts — hence the
+   `astro:page-load` re-init with a `data-chat-init` guard).
+3. Why streaming *looked* broken in the REPL but not curl (Accept-Encoding).
+4. Why markdown is rendered escape-first and links are https-only (a
+   prompt-injected model is an untrusted content source in your page).
 
-## Session 6 — Hardening (Exercise 3)
+## Session 6 — Hardening (Exercise 3) 🔴 do this next
+
+The bot is now advertised on the homepage with no per-IP limit and no gate —
+only the URL's obscurity ever protected the ~50 req/day budget, and that's
+gone. One piece exists already: upstream 429/402 maps to an honest client
+429 (`QuotaError` in `index.ts`), so your work is the per-IP KV counter and
+the gate in front of the flagship call.
 
 **Build:** KV rate limiting; an off-topic gate; abuse review.
 
