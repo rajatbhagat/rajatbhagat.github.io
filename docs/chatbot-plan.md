@@ -68,7 +68,7 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 
 | | |
 |---|---|
-| Models | `chatbot/src/models.ts` — visitor-selectable on /chat: NVIDIA Nemotron Ultra 550B (default), OpenAI GPT-OSS 20B, Google Gemma 4 31B; all `:free` |
+| Models | `chatbot/src/models.ts` — visitor-selectable on /ask-my-resume: NVIDIA Nemotron Ultra 550B (default), OpenAI GPT-OSS 20B, Google Gemma 4 31B; all `:free` |
 | Per question | **$0** — the budget is requests, not dollars |
 | Free-tier limits | ~20 req/min; **50 req/day** account-wide (1,000/day once you've purchased $10 of credits) |
 | Upgrade path | add an entry to `models.ts`; frontier models (e.g. `anthropic/claude-opus-4.8`) are available through the same API when quality is worth paying for |
