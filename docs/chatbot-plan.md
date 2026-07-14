@@ -58,13 +58,13 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
   `/ask-my-resume` page (model picker, markdown rendering, mobile
   full-screen, home-page teaser, privacy notes)
 
-### Phase 4 — Hardening ⚠️ **now the priority**
+### Phase 4 — Hardening (in progress)
 
-The original plan said "before linking it anywhere" — the bot is now linked
-from the homepage, nav, and a teaser, so only obscurity guards the
-~50 req/day budget. (The global quota-exhaustion case already returns an
-honest 429; what's missing is per-IP limiting and the gate.)
-- [ ] **Exercise 3:** per-IP rate limiting via Workers KV (~20 questions/day)
+Per-IP rate limiting shipped July 14 (PR #24) — the daily budget now has a
+lock on the door. The off-topic gate is the main remaining piece: refusals
+of unrelated questions still cost a flagship-model request each.
+- [x] **Exercise 3 (part 1):** per-IP rate limiting via Workers KV — done:
+      50/day per IP, date-keyed fixed window, 48h TTL, 429 with CORS
 - [ ] **Off-topic gate:** classify questions with a tiny free model (or a
       keyword allowlist) *before* the flagship call, so strangers can't use
       the endpoint as a free general-purpose LLM and drain the daily request
@@ -72,7 +72,8 @@ honest 429; what's missing is per-IP limiting and the gate.)
 - [ ] Prompt-injection testing: try to break your own bot; iterate
 - [ ] Log Q&A pairs to KV — recruiters' real questions are free market
       research on the resume
-- **Verify:** spend cap set; 21st question from one IP gets a 429
+- **Verify:** ✅ limiter verified with a zero-quota curl loop (empty-body
+  requests 400 before the LLM but still count); gate verification pending
 
 ## Model and cost
 
