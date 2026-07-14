@@ -322,6 +322,14 @@ const endpoint =
     let busy = false;
     let greeted = false;
 
+    // Conversation memory: completed exchanges, replayed with each request.
+    // Lives in this closure — the floating widget's node (listeners, closure
+    // and all) persists across view transitions, so "session" = the tab.
+    // The worker re-validates and re-caps whatever arrives; this cap just
+    // keeps requests small.
+    const MAX_HISTORY_PAIRS = 4;
+    const history: { role: 'user' | 'assistant'; content: string }[] = [];
+
     function addMsg(cls: string, text: string): HTMLElement {
       const div = document.createElement('div');
       div.className = `msg ${cls}`;
@@ -384,10 +392,16 @@ const endpoint =
       };
 
       try {
+        // `messages` is the recent conversation ending with the new question;
+        // `question` stays so a worker that predates multi-turn still works.
+        const messages = [
+          ...history.slice(-2 * (MAX_HISTORY_PAIRS - 1)),
+          { role: 'user', content: question },
+        ];
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, model: modelKey }),
+          body: JSON.stringify({ question, model: modelKey, messages }),
         });
         if (!res.ok || !res.body) {
           fail(
@@ -409,7 +423,16 @@ const endpoint =
           bot.innerHTML = renderMarkdown(answer);
           log.scrollTop = log.scrollHeight;
         }
-        if (!answer) fail('No answer came back — please try again.');
+        if (!answer) {
+          fail('No answer came back — please try again.');
+        } else {
+          // Only completed exchanges enter the history — a failed or partial
+          // answer would pollute every later request's context.
+          history.push({ role: 'user', content: question }, { role: 'assistant', content: answer });
+          if (history.length > 2 * MAX_HISTORY_PAIRS) {
+            history.splice(0, history.length - 2 * MAX_HISTORY_PAIRS);
+          }
+        }
       } catch {
         fail("Couldn't reach the chat service — please try again later.");
       } finally {
