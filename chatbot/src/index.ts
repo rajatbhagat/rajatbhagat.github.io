@@ -42,7 +42,7 @@ export default {
     const key = `rate-limit:${user_ip}:${current_date}`;
     const user_request_count = await env.RATE_LIMIT.get(key) || '0'; // key can be any string of your choosing
     
-    if (Number(user_request_count) > 50) {
+    if (Number(user_request_count) > 15) {
       return new Response(
         `429 Failure – Rate limit exceeded for user`,
         { status: 429, headers: cors },
