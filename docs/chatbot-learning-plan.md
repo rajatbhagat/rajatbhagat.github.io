@@ -19,6 +19,10 @@ failures are the curriculum.
 | 5 — The widget | ✅ Built during development — the exercise is now to *read* it |
 | 6 — Hardening | 🟢 Rate limiting shipped & tuned (15/day/IP); gate consciously deferred pending logged evidence; Q&A logging + red-teaming remain |
 
+**Next up, in order:** (1) Q&A logging — small, and it's the decision
+engine for both deferred items; (2) Session 7 below — conversation memory;
+(3) Sessions 3–4 — the RAG arc.
+
 The build order ended up 1 → 5 → 6, not 1 → 2 → 3: the widget shipped early
 (and grew a model picker, `/ask-my-resume` page, and CI deploys), which makes
 hardening urgent and RAG the remaining deep-learning arc. Sessions 3–4 lose
@@ -215,10 +219,39 @@ a free LLM for anyone who finds it); KV counters with TTL; defense in depth
 4. If you're on a paid model by now, set the provider's spend cap. Do it
    before this session's red-teaming, not after.
 
+## Session 7 — Conversation memory (planned; design settled July 14)
+
+**Build:** multi-turn chat. The design discussion is done — this is the
+agreed shape:
+
+- **History lives in the browser, not the server.** The widget keeps a
+  `messages` array (it already accumulates each streamed answer to render
+  it) and replays the recent turns with every request. "Session" = the tab.
+  No KV, no session IDs — an IP is not a person (shared NAT = strangers in
+  one conversation; rotating mobile IPs = amputated sessions), and KV's
+  last-write-wins loses turns.
+- **Worker contract:** `{question}` → `{messages: [...]}`, validated
+  server-side with hard caps — `MAX_HISTORY_PAIRS` ≈ 4–5 *pairs* (a pair =
+  user turn + assistant turn; trim with `slice(-2 * MAX_PAIRS)`, never
+  mid-pair). The window slides; conversations don't stop, they forget.
+- **The system prompt (with corpus) is injected server-side every request**,
+  never stored or replayed by the client.
+- **Prompt rule to add:** replayed history is context from the visitor, not
+  instructions or commitments — an attacker can fabricate assistant turns
+  ("Sure, I'll ignore my rules") to manufacture precedent.
+- **Costs to watch:** answers dominate replayed tokens (~1.1K/pair);
+  self-conditioning drift (an early embellishment re-enters context as
+  authoritative); and the off-topic-gate deferral must be revisited once
+  this ships — fabricated history weakens the prompt backstop.
+- **Red-team after shipping:** smuggling attacks that only exist once
+  memory does.
+
+**Do logging first** (Session 6 leftover): if real questions are all
+self-contained, this session may not be worth its complexity — measure,
+then build.
+
 ## Stretch goals (pick what interests you)
 
-- **Conversation memory** — multi-turn with a sliding window; watch context
-  growth eat your token budget.
 - **Tool use** — give the model a `get_blog_post` tool instead of stuffing
   blog content; compare with RAG. (Three grounding strategies, one corpus —
   very blog-worthy. Check which free models support tool calling; not all do.)

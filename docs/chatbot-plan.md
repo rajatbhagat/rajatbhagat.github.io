@@ -74,10 +74,18 @@ credit purchase**.
       the endpoint as a free general-purpose LLM and drain the daily request
       budget — with the Session-1 prompt rules as the backstop
 - [ ] Prompt-injection testing: try to break your own bot; iterate
-- [ ] Log Q&A pairs to KV — recruiters' real questions are free market
-      research on the resume
+- [ ] Log Q&A pairs to KV — **do this next**: it's free market research on
+      the resume AND the evidence base for the two deferred decisions (gate,
+      conversation memory)
 - **Verify:** ✅ limiter verified with a zero-quota curl loop (empty-body
   requests 400 before the LLM but still count); gate verification pending
+
+### Phase 5 — Conversation memory (planned)
+- [ ] Client-held history (widget `messages` array), replayed per request;
+      worker accepts `{messages}` with hard caps (~4–5 pairs, trimmed in
+      pairs); system prompt stays server-injected; history-is-not-authority
+      prompt rule; re-red-team and revisit the gate deferral after shipping.
+      Full design notes: learning plan, Session 7.
 
 ## Model and cost
 
