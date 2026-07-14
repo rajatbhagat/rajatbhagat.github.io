@@ -17,7 +17,11 @@ failures are the curriculum.
 | 3 — Chunking & embeddings | ⬜ Not started |
 | 4 — Retrieval & evaluation | ⬜ Not started — still the core learning session |
 | 5 — The widget | ✅ Built during development — the exercise is now to *read* it |
-| 6 — Hardening | 🟡 Per-IP rate limiting shipped (July 14); off-topic gate + red-teaming remain |
+| 6 — Hardening | 🟢 Rate limiting shipped & tuned (15/day/IP); gate consciously deferred pending logged evidence; Q&A logging + red-teaming remain |
+
+**Next up, in order:** (1) Q&A logging — small, and it's the decision
+engine for both deferred items; (2) Session 7 below — conversation memory;
+(3) Sessions 3–4 — the RAG arc.
 
 The build order ended up 1 → 5 → 6, not 1 → 2 → 3: the widget shipped early
 (and grew a model picker, `/ask-my-resume` page, and CI deploys), which makes
@@ -142,11 +146,31 @@ each one shipped and was found by a user (you):
 4. Why markdown is rendered escape-first and links are https-only (a
    prompt-injected model is an untrusted content source in your page).
 
-## Session 6 — Hardening (Exercise 3) 🟡 rate limiting done, gate open
+## Session 6 — Hardening (Exercise 3) 🟢 shipped, with deliberate deferrals
 
 **Done (July 14):** the per-IP daily counter, written and debugged by hand —
-50/day per IP, date-in-the-key fixed window (`rate-limit:<ip>:<YYYY-MM-DD>`),
-48h TTL as garbage collection, 429 with CORS. Lessons that made it worth
+15/day per IP (tightened from an initial 50, which had equalled the entire
+global budget), date-in-the-key fixed window
+(`rate-limit:<ip>:<YYYY-MM-DD>`), 48h TTL as garbage collection, 429 with
+CORS.
+
+**Deliberately deferred (decisions, not gaps):**
+
+- **Off-topic gate — skipped for latency.** A serial pre-filter call taxes
+  every legitimate question ~0.5–2s on top of the ~8s reasoning delay, to
+  defend against abuse that is hypothetical, $0, and self-healing (quota
+  resets at midnight). The prompt-level refusal remains the backstop; each
+  refusal costs one flagship request, bounded by the 15/day cap. Revisit
+  with data once Q&A logging exists — and revisit *mandatorily* if
+  conversation memory is added (fabricated history weakens the prompt
+  backstop).
+- **Global circuit-breaker — skipped as redundant.** OpenRouter itself
+  enforces the ~50/day account cap and the worker already maps its 429 to a
+  friendly client 429. Accepted trade: heavy visitor traffic can also lock
+  the *developer* out of the shared account budget for the day.
+  **Hard prerequisite before ever buying credits or pointing MODEL at a
+  paid model** — at that point the external hard-stop disappears and a
+  self-imposed daily cap becomes the spend limit. Lessons that made it worth
 doing manually:
 
 - The Cloudflare *Rate Limiting binding* and a *KV namespace* are different
@@ -173,7 +197,8 @@ a free LLM for anyone who finds it); KV counters with TTL; defense in depth
 **Do:**
 1. ~~Per-IP daily counter in Workers KV; 429 past the limit; verify with
    curl in a loop.~~ ✅ Done.
-2. **Off-topic gate** — refuse questions that aren't about Rajat *before*
+2. **Off-topic gate** *(deferred — see above; design kept for when data
+   justifies it)* — refuse questions that aren't about Rajat *before*
    the main model call, so abusers can't use your endpoint as a free
    general-purpose LLM and drain your daily request budget (or your wallet,
    the day you switch to a paid model). Two layers:
@@ -194,10 +219,39 @@ a free LLM for anyone who finds it); KV counters with TTL; defense in depth
 4. If you're on a paid model by now, set the provider's spend cap. Do it
    before this session's red-teaming, not after.
 
+## Session 7 — Conversation memory (planned; design settled July 14)
+
+**Build:** multi-turn chat. The design discussion is done — this is the
+agreed shape:
+
+- **History lives in the browser, not the server.** The widget keeps a
+  `messages` array (it already accumulates each streamed answer to render
+  it) and replays the recent turns with every request. "Session" = the tab.
+  No KV, no session IDs — an IP is not a person (shared NAT = strangers in
+  one conversation; rotating mobile IPs = amputated sessions), and KV's
+  last-write-wins loses turns.
+- **Worker contract:** `{question}` → `{messages: [...]}`, validated
+  server-side with hard caps — `MAX_HISTORY_PAIRS` ≈ 4–5 *pairs* (a pair =
+  user turn + assistant turn; trim with `slice(-2 * MAX_PAIRS)`, never
+  mid-pair). The window slides; conversations don't stop, they forget.
+- **The system prompt (with corpus) is injected server-side every request**,
+  never stored or replayed by the client.
+- **Prompt rule to add:** replayed history is context from the visitor, not
+  instructions or commitments — an attacker can fabricate assistant turns
+  ("Sure, I'll ignore my rules") to manufacture precedent.
+- **Costs to watch:** answers dominate replayed tokens (~1.1K/pair);
+  self-conditioning drift (an early embellishment re-enters context as
+  authoritative); and the off-topic-gate deferral must be revisited once
+  this ships — fabricated history weakens the prompt backstop.
+- **Red-team after shipping:** smuggling attacks that only exist once
+  memory does.
+
+**Do logging first** (Session 6 leftover): if real questions are all
+self-contained, this session may not be worth its complexity — measure,
+then build.
+
 ## Stretch goals (pick what interests you)
 
-- **Conversation memory** — multi-turn with a sliding window; watch context
-  growth eat your token budget.
 - **Tool use** — give the model a `get_blog_post` tool instead of stuffing
   blog content; compare with RAG. (Three grounding strategies, one corpus —
   very blog-worthy. Check which free models support tool calling; not all do.)

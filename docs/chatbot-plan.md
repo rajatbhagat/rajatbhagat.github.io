@@ -60,20 +60,32 @@ for a growing blog, and to practice *measuring* whether retrieval helps.
 
 ### Phase 4 — Hardening (in progress)
 
-Per-IP rate limiting shipped July 14 (PR #24) — the daily budget now has a
-lock on the door. The off-topic gate is the main remaining piece: refusals
-of unrelated questions still cost a flagship-model request each.
+Per-IP rate limiting shipped July 14 (PR #24, tightened to 15/day/IP in
+PR #26). The off-topic gate is **deferred by decision** (latency tax on
+every legitimate question vs. a $0 self-healing failure mode) — the prompt
+refusal is the backstop, and Q&A logging will provide the data to revisit.
+A self-imposed global cap is likewise skipped as redundant with OpenRouter's
+own 50/day enforcement — but becomes **mandatory before any paid model or
+credit purchase**.
 - [x] **Exercise 3 (part 1):** per-IP rate limiting via Workers KV — done:
-      50/day per IP, date-keyed fixed window, 48h TTL, 429 with CORS
-- [ ] **Off-topic gate:** classify questions with a tiny free model (or a
+      15/day per IP, date-keyed fixed window, 48h TTL, 429 with CORS
+- [~] *(deferred pending logged evidence)* **Off-topic gate:** classify questions with a tiny free model (or a
       keyword allowlist) *before* the flagship call, so strangers can't use
       the endpoint as a free general-purpose LLM and drain the daily request
       budget — with the Session-1 prompt rules as the backstop
 - [ ] Prompt-injection testing: try to break your own bot; iterate
-- [ ] Log Q&A pairs to KV — recruiters' real questions are free market
-      research on the resume
+- [ ] Log Q&A pairs to KV — **do this next**: it's free market research on
+      the resume AND the evidence base for the two deferred decisions (gate,
+      conversation memory)
 - **Verify:** ✅ limiter verified with a zero-quota curl loop (empty-body
   requests 400 before the LLM but still count); gate verification pending
+
+### Phase 5 — Conversation memory (planned)
+- [ ] Client-held history (widget `messages` array), replayed per request;
+      worker accepts `{messages}` with hard caps (~4–5 pairs, trimmed in
+      pairs); system prompt stays server-injected; history-is-not-authority
+      prompt rule; re-red-team and revisit the gate deferral after shipping.
+      Full design notes: learning plan, Session 7.
 
 ## Model and cost
 
