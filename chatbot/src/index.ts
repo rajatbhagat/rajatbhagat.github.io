@@ -1,4 +1,4 @@
-import { askModel, QuotaError } from './chat';
+import { askModel, QuotaError, type ChatMessage } from './chat';
 import { DEFAULT_MODEL, isModelKey } from './models';
 
 export interface Env {
@@ -36,7 +36,7 @@ export default {
       return new Response('Not found', { status: 404, headers: cors });
     }
 
-    // Rate limiting: allow 50 requests per user per day (based on IP address)
+    // Rate limiting: allow 15 requests per user per day (based on IP address)
     const user_ip = request.headers.get("CF-Connecting-IP") ?? 'unknown';
     const current_date = new Date().toISOString().slice(0, 10);
     const key = `rate-limit:${user_ip}:${current_date}`;
@@ -52,10 +52,31 @@ export default {
 
     let question: unknown;
     let model: unknown;
+    let messages: unknown;
     try {
-      ({ question, model } = (await request.json()) as { question?: unknown; model?: unknown });
+      ({ question, model, messages } = (await request.json()) as { question?: unknown; model?: unknown; messages?: unknown });
     } catch {
       return new Response('Body must be JSON: {"question": "..."}', { status: 400, headers: cors });
+    }
+
+    if (messages !== undefined && !Array.isArray(messages)) {
+      return new Response('messages must be a list of objects', { status: 400, headers: cors });
+    }
+
+    const normalizedMessages = Array.isArray(messages)
+      ? messages.filter((message): message is ChatMessage => {
+          return (
+            typeof message === "object" &&
+            message !== null &&
+            typeof (message as ChatMessage).role === "string" &&
+            ((message as ChatMessage).role == "user" || (message as ChatMessage).role == "assistant") &&
+            typeof (message as ChatMessage).content === "string"
+          );
+        })
+      : [];
+
+    if (Array.isArray(messages) && normalizedMessages.length !== messages.length) {
+      return new Response('Each message must include a string role and content', { status: 400, headers: cors });
     }
     if (typeof question !== 'string' || question.trim().length === 0) {
       return new Response('Missing "question"', { status: 400, headers: cors });
@@ -72,7 +93,7 @@ export default {
     const modelKey = isModelKey(model) ? model : DEFAULT_MODEL;
 
     try {
-      const stream = await askModel(env, question.trim(), modelKey);
+      const stream = await askModel(env, question.trim(), modelKey, normalizedMessages);
       return new Response(stream, {
         headers: { ...cors, 'Content-Type': 'text/plain; charset=utf-8' },
       });

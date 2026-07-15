@@ -5,6 +5,11 @@ import type { Env } from "./index";
 /** The upstream LLM quota is exhausted — a "try again tomorrow", not a bug. */
 export class QuotaError extends Error {}
 
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 /**
  * EXERCISE 1 (Phase 1) — design and build the system prompt.
  *
@@ -56,11 +61,19 @@ export async function askModel(
   env: Env,
   question: string,
   model: ModelKey,
+  messages: ChatMessage[] = [],
 ): Promise<ReadableStream<Uint8Array>> {
+  // Assuming messages will also contain the latest questions
+  let messagesInScope : ChatMessage[] = [];
+  if(messages.length == 0) {
+    messagesInScope = [{ role: "user", content: question }]
+  } else {
+    messagesInScope = messages.length < 6 ? messages : messages.slice(-5);
+  }
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
       // Optional attribution headers — shown on openrouter.ai rankings
       "X-Title": "Ask My Resume",
@@ -71,7 +84,7 @@ export async function askModel(
       stream: true,
       messages: [
         { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: question },
+        ...messagesInScope,
       ],
     }),
   });
