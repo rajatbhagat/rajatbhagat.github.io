@@ -80,12 +80,15 @@ credit purchase**.
 - **Verify:** ✅ limiter verified with a zero-quota curl loop (empty-body
   requests 400 before the LLM but still count); gate verification pending
 
-### Phase 5 — Conversation memory (planned)
-- [ ] Client-held history (widget `messages` array), replayed per request;
-      worker accepts `{messages}` with hard caps (~4–5 pairs, trimmed in
-      pairs); system prompt stays server-injected; history-is-not-authority
-      prompt rule; re-red-team and revisit the gate deferral after shipping.
-      Full design notes: learning plan, Session 7.
+### Phase 5 — Conversation memory ✅ shipped (July 14–15)
+- [x] Client-held history (widget `messages` array) replayed per request;
+      worker accepts `{messages}`, validates roles at the boundary
+      (whitelist `user`/`assistant`), keeps the system prompt server-injected,
+      and caps turn count. Follow-ups resolve cross-turn references.
+- [ ] Follow-ups still open: history-is-not-authority **prompt rule**;
+      **total-length cap** on messages; re-red-team; revisit the gate
+      deferral now that fabricated history is possible.
+      Full notes: learning plan, Session 7.
 
 ## Model and cost
 
