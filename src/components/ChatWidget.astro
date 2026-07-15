@@ -225,6 +225,7 @@ const endpoint =
     let para: string[] = [];
     let list: { tag: 'ul' | 'ol'; items: string[] } | null = null;
     let code: string[] | null = null;
+    let table: string[] | null = null;
 
     const flushPara = () => {
       if (para.length) out.push(`<p>${para.join('<br>')}</p>`);
@@ -233,6 +234,38 @@ const endpoint =
     const flushList = () => {
       if (list) out.push(`<${list.tag}>${list.items.map((i) => `<li>${i}</li>`).join('')}</${list.tag}>`);
       list = null;
+    };
+    // GitHub-flavored pipe tables. Cells were HTML-escaped up front, so this
+    // only introduces our own <table>/<th>/<td> tags around escaped content.
+    const cells = (row: string): string[] => {
+      let s = row.trim();
+      if (s.startsWith('|')) s = s.slice(1);
+      if (s.endsWith('|')) s = s.slice(0, -1);
+      return s.split('|').map((c) => c.trim());
+    };
+    const isSeparator = (row: string): boolean => {
+      const cs = cells(row);
+      return cs.length > 0 && cs.every((c) => /^:?-+:?$/.test(c));
+    };
+    const flushTable = () => {
+      if (!table) return;
+      const rows = table;
+      table = null;
+      // A real table needs a header row + a `|---|` separator; otherwise the
+      // buffered pipe lines fall back to plain paragraphs (nothing lost, and
+      // it avoids mangling half-streamed tables).
+      if (rows.length >= 2 && isSeparator(rows[1]!)) {
+        const head = cells(rows[0]!).map((c) => `<th>${inlineMd(c)}</th>`).join('');
+        const body = rows
+          .slice(2)
+          .map((r) => `<tr>${cells(r).map((c) => `<td>${inlineMd(c)}</td>`).join('')}</tr>`)
+          .join('');
+        out.push(
+          `<div class="chat-table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`,
+        );
+      } else {
+        for (const r of rows) out.push(`<p>${inlineMd(r)}</p>`);
+      }
     };
 
     for (const line of lines) {
@@ -248,9 +281,18 @@ const endpoint =
       if (/^```/.test(line)) {
         flushPara();
         flushList();
+        flushTable();
         code = [];
         continue;
       }
+      // A line starting with `|` is a table row; buffer consecutive ones.
+      if (/^\s*\|/.test(line)) {
+        flushPara();
+        flushList();
+        (table ??= []).push(line);
+        continue;
+      }
+      flushTable();
       const ul = line.match(/^\s*[-*]\s+(.*)/);
       const ol = line.match(/^\s*\d+[.)]\s+(.*)/);
       if (ul || ol) {
@@ -277,6 +319,7 @@ const endpoint =
       para.push(inlineMd(line));
     }
     if (code) out.push(`<pre><code>${code.join('\n')}</code></pre>`);
+    flushTable();
     flushPara();
     flushList();
     return out.join('');
@@ -740,6 +783,30 @@ const endpoint =
     margin: 0.5em 0;
     padding: 0.5em 0.75em;
     font-size: 0.85em;
+  }
+
+  /* Wide tables scroll inside their own container rather than the page */
+  .chat-widget .chat-table-wrap {
+    overflow-x: auto;
+    margin: 0.5em 0;
+  }
+
+  .chat-widget .msg table {
+    border-collapse: collapse;
+    font-size: 0.85em;
+  }
+
+  .chat-widget .msg th,
+  .chat-widget .msg td {
+    border: 1px solid var(--border);
+    padding: 0.3em 0.55em;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .chat-widget .msg th {
+    background: var(--bg-soft);
+    font-weight: 600;
   }
 
   .chat-widget .chat-form {
