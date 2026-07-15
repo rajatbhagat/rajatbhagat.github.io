@@ -131,6 +131,8 @@ const endpoint =
 }
 
 <script>
+  import MarkdownIt from 'markdown-it';
+
   // View transitions swap in fresh DOM without re-running this module, so
   // init must re-run on every navigation (same pattern as the Header theme
   // toggle). Nodes that survived a swap via transition:persist keep their
@@ -185,145 +187,28 @@ const endpoint =
     }
   });
 
-  // --- Minimal markdown renderer for model answers ---------------------
-  // Escape-first, then apply a whitelisted subset (bold, italics, inline
-  // code, fenced code, http(s) links, lists, headings-as-bold). Everything
-  // the model emits is HTML-escaped before any tags are introduced, so the
-  // only HTML in the output is ours.
+  // --- Markdown rendering for model answers ----------------------------
+  // The model is an untrusted (prompt-injectable) content source, so safety
+  // is the constraint: `html: false` makes markdown-it escape any raw HTML
+  // in the answer, and its default link validator rejects javascript:/data:
+  // schemes — so nothing the model emits can execute.
+  const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 
-  function escapeHtml(s: string): string {
-    return s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
+  // Open links in a new tab safely.
+  const defaultLinkOpen =
+    md.renderer.rules.link_open ??
+    ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+  md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+    tokens[idx]!.attrSet('target', '_blank');
+    tokens[idx]!.attrSet('rel', 'noopener noreferrer');
+    return defaultLinkOpen(tokens, idx, options, env, self);
+  };
 
-  function inlineMd(s: string): string {
-    return s
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      .replace(
-        /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
-      )
-      // Auto-link bare URLs the model didn't wrap in markdown. The prefix
-      // guard (start/whitespace/paren) skips URLs already inside the href="
-      // or >text</a> produced by the rule above; trailing punctuation stays
-      // outside the link.
-      .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, (_m, pre: string, url: string) => {
-        const clean = url.replace(/[.,;:!?]+$/, '');
-        const rest = url.slice(clean.length);
-        return `${pre}<a href="${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>${rest}`;
-      });
-  }
+  // Wide tables scroll inside their own container rather than the page.
+  md.renderer.rules.table_open = () => '<div class="chat-table-wrap"><table>';
+  md.renderer.rules.table_close = () => '</table></div>';
 
-  function renderMarkdown(md: string): string {
-    const lines = escapeHtml(md).split('\n');
-    const out: string[] = [];
-    let para: string[] = [];
-    let list: { tag: 'ul' | 'ol'; items: string[] } | null = null;
-    let code: string[] | null = null;
-    let table: string[] | null = null;
-
-    const flushPara = () => {
-      if (para.length) out.push(`<p>${para.join('<br>')}</p>`);
-      para = [];
-    };
-    const flushList = () => {
-      if (list) out.push(`<${list.tag}>${list.items.map((i) => `<li>${i}</li>`).join('')}</${list.tag}>`);
-      list = null;
-    };
-    // GitHub-flavored pipe tables. Cells were HTML-escaped up front, so this
-    // only introduces our own <table>/<th>/<td> tags around escaped content.
-    const cells = (row: string): string[] => {
-      let s = row.trim();
-      if (s.startsWith('|')) s = s.slice(1);
-      if (s.endsWith('|')) s = s.slice(0, -1);
-      return s.split('|').map((c) => c.trim());
-    };
-    const isSeparator = (row: string): boolean => {
-      const cs = cells(row);
-      return cs.length > 0 && cs.every((c) => /^:?-+:?$/.test(c));
-    };
-    const flushTable = () => {
-      if (!table) return;
-      const rows = table;
-      table = null;
-      // A real table needs a header row + a `|---|` separator; otherwise the
-      // buffered pipe lines fall back to plain paragraphs (nothing lost, and
-      // it avoids mangling half-streamed tables).
-      if (rows.length >= 2 && isSeparator(rows[1]!)) {
-        const head = cells(rows[0]!).map((c) => `<th>${inlineMd(c)}</th>`).join('');
-        const body = rows
-          .slice(2)
-          .map((r) => `<tr>${cells(r).map((c) => `<td>${inlineMd(c)}</td>`).join('')}</tr>`)
-          .join('');
-        out.push(
-          `<div class="chat-table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`,
-        );
-      } else {
-        for (const r of rows) out.push(`<p>${inlineMd(r)}</p>`);
-      }
-    };
-
-    for (const line of lines) {
-      if (code) {
-        if (/^```/.test(line)) {
-          out.push(`<pre><code>${code.join('\n')}</code></pre>`);
-          code = null;
-        } else {
-          code.push(line);
-        }
-        continue;
-      }
-      if (/^```/.test(line)) {
-        flushPara();
-        flushList();
-        flushTable();
-        code = [];
-        continue;
-      }
-      // A line starting with `|` is a table row; buffer consecutive ones.
-      if (/^\s*\|/.test(line)) {
-        flushPara();
-        flushList();
-        (table ??= []).push(line);
-        continue;
-      }
-      flushTable();
-      const ul = line.match(/^\s*[-*]\s+(.*)/);
-      const ol = line.match(/^\s*\d+[.)]\s+(.*)/);
-      if (ul || ol) {
-        flushPara();
-        const tag = ul ? 'ul' : 'ol';
-        if (!list || list.tag !== tag) {
-          flushList();
-          list = { tag, items: [] };
-        }
-        list.items.push(inlineMd((ul ?? ol)![1]!));
-        continue;
-      }
-      flushList();
-      const heading = line.match(/^#{1,6}\s+(.*)/);
-      if (heading) {
-        flushPara();
-        out.push(`<p><strong>${inlineMd(heading[1]!)}</strong></p>`);
-        continue;
-      }
-      if (!line.trim()) {
-        flushPara();
-        continue;
-      }
-      para.push(inlineMd(line));
-    }
-    if (code) out.push(`<pre><code>${code.join('\n')}</code></pre>`);
-    flushTable();
-    flushPara();
-    flushList();
-    return out.join('');
-  }
+  const renderMarkdown = (source: string): string => md.render(source);
 
   function initChat(root: HTMLElement) {
     const isPage = root.classList.contains('chat-page');
