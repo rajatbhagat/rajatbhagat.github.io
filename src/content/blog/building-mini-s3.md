@@ -4,6 +4,7 @@ description: 'Why I built an S3-compatible object storage service from scratch w
 pubDate: 2026-07-09
 category: tech
 tags: [java, spring-boot, aws, s3, postgresql]
+draft: true
 ---
 
 I've used AWS S3 for years — uploading artifacts, hosting static assets, wiring it into data pipelines. But using a service and understanding it are different things. So I decided to build my own: [Mini-S3](https://github.com/rajatbhagat/mini-s3), an S3-compatible object storage service in Spring Boot and PostgreSQL, with a [React/Next.js UI](https://github.com/rajatbhagat/mini-s3-ui) on top.
