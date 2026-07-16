@@ -4,7 +4,7 @@ description: 'A design walkthrough of the AI assistant on this site — how a Gi
 pubDate: 2026-07-16
 category: tech
 tags: [ai, llm, cloudflare-workers, astro, architecture, design-doc, open-router, claude-code]
-draft: true
+draft: false
 ---
 
 ## TL;DR
