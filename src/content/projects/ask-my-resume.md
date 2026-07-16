@@ -6,6 +6,8 @@ links:
     url: https://rajatbhagat.github.io/ask-my-resume/
   - label: Code
     url: https://github.com/rajatbhagat/rajatbhagat.github.io/tree/main/chatbot
+  - label: Design doc
+    url: https://rajatbhagat.github.io/blog/ask-my-resume-design/
 date: 2026-07-15
 ---
 
