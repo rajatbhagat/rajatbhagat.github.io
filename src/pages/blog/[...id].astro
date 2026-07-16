@@ -73,6 +73,20 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
     margin: 2rem 0;
   }
 
+  /* Figures (diagrams, screenshots) break out past the ~44rem reading column
+     so their detail stays legible — centered on the page and capped to the
+     viewport so they never cause horizontal scroll. The white backing keeps
+     transparent PNGs (e.g. exported diagrams) readable in dark mode. */
+  .content :global(img) {
+    display: block;
+    height: auto;
+    max-width: min(56rem, 94vw);
+    margin-left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 8px;
+  }
+
   .tags {
     display: flex;
     gap: 0.4rem;
