@@ -4,6 +4,7 @@ description: 'The first post — and a living guide to how I add new posts and c
 pubDate: 2026-07-09
 category: tech
 tags: [astro, meta, blogging]
+draft: true
 ---
 
 Welcome! This is my corner of the internet — part portfolio, part blog. I'll write here about technology I'm working with, movies I've watched, and whatever else earns a category.
