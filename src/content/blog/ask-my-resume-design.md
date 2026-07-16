@@ -9,7 +9,7 @@ draft: true
 
 ## TL;DR
 
-Ask My Resume is an LLM-based serverless chatbot designed to answer questions about my resume — education, work, projects and skills. The design relies on a serverless Worker provided by Cloudflare, which sends the user's request to OpenRouter to get a response from one of the chosen models. The bot also maintains some limited conversation context so the conversation can flow better rather than being a strict question-and-answer format. The setup and chosen technologies ensure that running the bot costs nothing, and it has guardrails to mitigate exploitative usage.
+[Ask My Resume](https://rajatbhagat.github.io/ask-my-resume/) is an LLM-based serverless chatbot designed to answer questions about my resume — education, work, projects and skills. The design relies on a serverless Worker provided by Cloudflare, which sends the user's request to OpenRouter to get a response from one of the chosen models. The bot also maintains some limited conversation context so the conversation can flow better rather than being a strict question-and-answer format. The setup and chosen technologies ensure that running the bot costs nothing, and it has guardrails to mitigate exploitative usage.
 
 ## Architecture overview
 
@@ -52,7 +52,7 @@ Maintaining conversation history was a significant problem to overcome. Without 
 
 ## Key design decisions & tradeoffs
 
-- **Context-stuffing over RAG (for now).** With a ~3k-token corpus, stuffing the whole thing into the system prompt is simpler and cheaper than standing up embeddings and a vector store. RAG is the natural next step and a good learning exercise, but it wouldn't measurably improve answers at this corpus size.
+- **Embedding corpus in system prompt over RAG (for now).** With a ~3k-token corpus, stuffing the whole thing into the system prompt is simpler and cheaper than standing up embeddings and a vector store. RAG is the natural next step and a good learning exercise, but it wouldn't measurably improve answers at this corpus size.
 - **Free models over paid.** Zero running cost was a hard goal, and the free models handle resume questions well. The cost of that choice is the 50 requests/day account cap, which the per-IP rate limit exists to protect.
 - **Per-IP rate limiting over an off-topic gate.** A pre-filter that classifies every question before answering would add latency to every legitimate request, to defend against abuse that is hypothetical, free, and self-healing (the quota resets daily). I chose to bound the damage with a per-IP daily limit instead, and left the gate as an option to revisit if real abuse shows up.
 - **Client-held conversation history over server storage.** Keeping history in the browser keeps the Worker stateless, sidesteps the problem of identifying anonymous users, and means I never store anyone's conversation.
@@ -63,23 +63,12 @@ Everything arriving at the Worker is treated as untrusted, and a few layers hand
 
 - **CORS** restricts which origins a browser will let call the Worker, so another website's front-end can't drive the bot through its visitors' browsers.
 - **Per-IP rate limiting** (in Workers KV) caps any single IP's daily questions, protecting the shared request budget.
-- **Prompt-level defenses** — the system prompt tells the model to answer only from the corpus and to ignore instructions embedded in user input, and the Worker only accepts `user`/`assistant` roles in replayed history, so a client can't smuggle in a fake `system` message.
+- **System Prompt** — the system prompt tells the model to answer only from the corpus and to ignore instructions embedded in user input, and the Worker only accepts `user`/`assistant` roles in replayed history, so a client can't smuggle in a fake `system` message.
 - **Escape-first rendering** — model output is rendered as untrusted content (HTML is escaped, links are scheme-checked), because a prompt-injected model is effectively untrusted input inside my page.
 
 The honest gap I live with for now is that the Worker URL is public. CORS only binds browsers, so a non-browser client (curl, a script) can call the endpoint directly and spend requests. Real auth isn't a fix here — the whole point is to serve anonymous recruiters, who can't be asked to log in. The realistic tool, if abuse ever materializes, is a humanness challenge like Cloudflare Turnstile. Given that the models are free and the daily cap self-heals, the rate limiter is a reasonable place to stop for now.
 
 ## Cost & scaling
 
-The total cost of building this entire project with Claude Code (using the Fable 5 model) was about $2, per the statusline in my Claude Code session. The running cost is $0 — the models and the Cloudflare / GitHub Pages tiers are all free. The one bottleneck is the 50 requests/day OpenRouter cap, which a small amount of credit or a low-cost paid model would remove if traffic ever justified it.
+The total cost of building this entire project with Claude Code (using the Fable 5 model) was about $2, per the statusline in my Claude Code session. The running cost is $0 — the models and the Cloudflare / GitHub Pages tiers are all free. The one bottleneck is the 50 requests/day OpenRouter cap, which a small amount of credit or a low-cost paid model would remove.
 
-## Lessons learned
-
-- **TypeScript types are a compile-time promise, not a runtime check.** Data arriving from the network is whatever the caller sent, regardless of the type I annotate it with — a fabricated `system` message injected instructions until I validated roles at the boundary. Validate untrusted input where it enters; trust it only after.
-- **Know when to stop hand-rolling.** A small custom markdown renderer was the right call while the feature set was tiny and I wanted to understand the escape-first security model firsthand. Once it needed tables and more, moving to a library (markdown-it, configured to stay escape-first) was the right call.
-- **CORS is not a security boundary.** It stops other sites' browsers, not determined callers. Knowing what a mechanism actually protects against matters more than knowing it's "on."
-- **Measure before building.** Logging real questions first will tell me whether the off-topic gate or richer memory is worth the complexity — better than guessing.
-
-## Links
-
-- Try it: [/ask-my-resume](/ask-my-resume/)
-- Code: [github.com/rajatbhagat/rajatbhagat.github.io](https://github.com/rajatbhagat/rajatbhagat.github.io)
