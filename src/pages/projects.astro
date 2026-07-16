@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import site from '../data/site.json';
 
 const projects = (await getCollection('projects')).sort(
-  (a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id)
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id)
 );
 const rendered = await Promise.all(
   projects.map(async (project) => ({ project, Content: (await render(project)).Content }))

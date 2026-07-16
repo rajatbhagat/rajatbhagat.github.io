@@ -39,7 +39,9 @@ const projects = defineCollection({
     name: z.string(),
     tech: z.array(z.string()),
     links: z.array(z.object({ label: z.string(), url: z.string() })),
-    order: z.number(),
+    // Projects sort newest-first by date. Add a project -> just give it a
+    // date; no need to renumber anything.
+    date: z.coerce.date(),
   }),
 });
 
