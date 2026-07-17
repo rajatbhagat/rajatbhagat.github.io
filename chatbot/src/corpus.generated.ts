@@ -116,7 +116,7 @@ order: 3
 company: The Options Clearing Corporation
 location: Chicago, US
 title: Associate Principal Software Engineer — Data Platform
-period: Nov 2025 – Jun 2026
+period: Nov 2025 – Jul 2026
 order: 1
 ---
 
