@@ -130,12 +130,30 @@ order: 1
 # Projects
 
 ---
+name: Ask My Resume
+tech: [Cloudflare Workers, TypeScript, OpenRouter, LLMs, Astro, Workers KV]
+links:
+  - label: Try it live
+    url: https://rajatbhagat.github.io/ask-my-resume/
+  - label: Code
+    url: https://github.com/rajatbhagat/rajatbhagat.github.io/tree/main/chatbot
+  - label: Design doc
+    url: https://rajatbhagat.github.io/blog/ask-my-resume-design/
+date: 2026-07-15
+---
+
+An AI assistant embedded in this site that answers recruiter questions about my experience, grounded in the site's own content. A Cloudflare Worker proxies requests to an LLM (via OpenRouter) so the API key never reaches the browser — with streamed responses, a model picker, conversation memory, per-IP rate limiting, and prompt-injection defenses. Runs entirely on free tiers with no backend server to operate.
+
+
+---
+
+---
 name: Food Recommender
 tech: [Node.js, JavaScript, MongoDB]
 links:
   - label: GitHub
     url: https://github.com/rajatbhagat/food-recommender-server
-order: 3
+date: 2022-12-01
 ---
 
 Backend server for a food recommendation application that suggests dishes and restaurants based on user preferences.
@@ -151,7 +169,7 @@ links:
     url: https://github.com/rajatbhagat/hotel-reservation-spring-boot
   - label: Frontend
     url: https://github.com/rajatbhagat/hotel-reservation-react-app
-order: 2
+date: 2023-04-01
 ---
 
 A full-stack hotel booking application with a Spring Boot REST backend and a React frontend covering room search, reservations, and booking management.
@@ -167,7 +185,7 @@ links:
     url: https://github.com/rajatbhagat/mini-s3
   - label: UI
     url: https://github.com/rajatbhagat/mini-s3-ui
-order: 1
+date: 2026-07-09
 ---
 
 An S3-compatible object storage service built from scratch to understand object storage internals — bucket management, object versioning, custom metadata, and a RESTful API, plus a React/Next.js UI with drag-and-drop uploads.
@@ -181,95 +199,103 @@ tech: [Python, Jupyter, scikit-learn]
 links:
   - label: GitHub
     url: https://github.com/rajatbhagat/music-recommendation-system
-order: 4
+date: 2022-09-01
 ---
 
 A machine-learning based music recommendation system exploring collaborative filtering and content-based approaches.
+
+
+---
+
+---
+name: Portfolio Website
+tech: [Astro, TypeScript, GitHub Actions, GitHub Pages, Markdown]
+links:
+  - label: Live site
+    url: https://rajatbhagat.github.io
+  - label: Code
+    url: https://github.com/rajatbhagat/rajatbhagat.github.io
+date: 2026-07-10
+---
+
+This site — a statically generated portfolio and blog built with Astro. All content (experience, projects, blog posts) lives in Markdown through type-safe content collections, so adding a post or a role is a single file. Ships with light/dark theming, view transitions, RSS, and sitemap generation, and deploys automatically to GitHub Pages via a GitHub Actions pipeline.
 
 
 
 # Blog Posts
 
 ---
-title: 'Building Mini-S3: Learning Object Storage by Reimplementing It'
-description: 'Why I built an S3-compatible object storage service from scratch with Spring Boot and PostgreSQL, and what it taught me.'
-pubDate: 2026-07-09
+title: 'Designing "Ask My Resume": A Serverless RAG-ready Chatbot on a Static Site'
+description: 'A design walkthrough of the AI assistant on this site — how a GitHub Pages static site talks to an LLM safely, cheaply, and without a backend server.'
+pubDate: 2026-07-16
 category: tech
-tags: [java, spring-boot, aws, s3, postgresql]
+tags: [ai, llm, cloudflare-workers, astro, architecture, design-doc, open-router, claude-code]
+draft: false
 ---
 
-I've used AWS S3 for years — uploading artifacts, hosting static assets, wiring it into data pipelines. But using a service and understanding it are different things. So I decided to build my own: [Mini-S3](https://github.com/rajatbhagat/mini-s3), an S3-compatible object storage service in Spring Boot and PostgreSQL, with a [React/Next.js UI](https://github.com/rajatbhagat/mini-s3-ui) on top.
+## TL;DR
 
-## What it does
+[Ask My Resume](https://rajatbhagat.github.io/ask-my-resume/) is an LLM-based serverless chatbot designed to answer questions about my resume — education, work, projects and skills. The design relies on a serverless Worker provided by Cloudflare, which sends the user's request to OpenRouter to get a response from one of the chosen models. The bot also maintains some limited conversation context so the conversation can flow better rather than being a strict question-and-answer format. The setup and chosen technologies ensure that running the bot costs nothing, and it has guardrails to mitigate exploitative usage.
 
-Mini-S3 implements the core ideas of object storage:
+## Architecture overview
 
-- **Buckets** — top-level containers with validation rules (naming, empty-bucket deletion checks)
-- **Objects** — upload, download, and delete files with their metadata
-- **Versioning** — every change to an object keeps its full history
-- **Custom metadata** — arbitrary key-value pairs attached to objects at upload time
-- **A RESTful API** — clean endpoints that mirror how S3's own API is shaped
+The architecture is pretty simple. A standard user request follows this flow:
 
-The UI adds drag-and-drop uploads, bucket browsing, and metadata views in friendly tables.
+- User asks a question on the UI (floating widget / ask-my-resume page)
+- The request, along with the user's recent conversation history, is sent to the Cloudflare Worker
+- The Worker validates the message and checks it against the rate limits, then forwards the request to OpenRouter
+- OpenRouter runs the LLM and streams a response back, which is shown to the user
 
-## What building it taught me
+![Flow Diagram](images/ask-my-resume-flow.png)
 
-**Versioning is a data-modeling problem, not a storage problem.** The interesting part isn't storing multiple copies — it's deciding what "the current version" means, how deletes interact with history, and how to keep queries fast when every object is really a chain of versions.
+## Components
 
-**Metadata design matters more than it looks.** S3's split between system metadata and user metadata seemed arbitrary until I had to implement both and realized they have completely different consistency and validation needs.
+### Frontend and UI (Astro island)
 
-**API ergonomics come from constraints.** Reproducing S3-style semantics (like refusing to delete a non-empty bucket) forced me to think about *why* AWS made those choices — usually the answer is protecting users from themselves.
+The UI is built with Astro and written in TypeScript. I owned the user-experience decisions — the floating widget and the dedicated \`/ask-my-resume\` page sharing a single component, incremental streaming of answers as they arrive, the model picker, and the mobile layout — and paired with Claude Code to implement and iterate on them.
 
-## Managing it like a real project
+### Cloudflare Worker
 
-I ran the build like a work project, with a JIRA board, epics, and 175+ tasks. That sounds like overkill for a personal repo, but it kept the scope honest and made it easy to pick the project back up after breaks.
+github.io websites are meant to be simple static pages, and the repository holding this website's code has to be a public repository accessible by everyone. That means it can't hold any sort of secret, including the OpenRouter API key. This was the main reason for creating a Cloudflare Worker: it can hold the API key safely and talk to the OpenRouter API to invoke the LLMs.
 
-If you've ever wanted to demystify a cloud service you use daily, I highly recommend reimplementing a toy version. You'll never look at the real thing the same way.
+### LLM via OpenRouter
 
+OpenRouter provides a whole host of models to choose from. I chose the three below, which seem to provide reliable and accurate output with a large token and parameter capacity:
 
----
+- nvidia/nemotron-3-ultra-550b-a55b:free
+- openai/gpt-oss-20b:free
+- google/gemma-4-26b-a4b-it:free
 
----
-title: 'Hello World: How This Blog Works'
-description: 'The first post — and a living guide to how I add new posts and categories to this site.'
-pubDate: 2026-07-09
-category: tech
-tags: [astro, meta, blogging]
----
+The main drawback of using free models is the account-wide 50 requests/day limit. To keep any one visitor from exhausting that, a single user starts getting \`Rate Limit Exceeded\` messages after 16 questions in a day. Realistically a recruiter wouldn't go that far, so this rarely comes up. Adding OpenRouter credits or switching to a low-cost paid model would lift the daily cap.
 
-Welcome! This is my corner of the internet — part portfolio, part blog. I'll write here about technology I'm working with, movies I've watched, and whatever else earns a category.
+### Corpus and System Prompt
 
-This first post doubles as documentation for future me: here's how the blog actually works.
+The initial prototype only used my resume as the basis. Later I expanded on every job role and my duties within it, and stored a summary of that in the corpus. The entire corpus is approximately 3,000 tokens — small enough that context size isn't a concern. The initial idea was to build a RAG-based implementation to avoid consuming a lot of input tokens from the get-go. The current implementation includes the whole corpus in the system prompt, and the prompt also adds guardrails: it instructs the model to answer only from the corpus and to politely decline off-topic questions. The next step would be a RAG-based solution — but since the corpus is so small, RAG is unlikely to make a significant difference, so it stays a learning exercise for later rather than a necessity.
 
-## The stack
+### Conversation memory
 
-The site is built with [Astro](https://astro.build), a static site generator that treats markdown as a first-class citizen. Every page is pre-rendered to plain HTML, so it's fast and hosts for free on GitHub Pages. A GitHub Actions workflow rebuilds and deploys the site on every push to \`main\`.
+Maintaining conversation history was a significant problem to overcome. Without it, the bot would be less conversational and more of a question-and-answer page. History is kept by storing the previous questions and the bot's answers in the browser and sending them along with each new request. The Cloudflare Worker only uses the last 5 messages when building the prompt for the LLM — again, a measure to avoid filling up the token budget. Because the history lives in each visitor's browser, concurrent users never share context, and no conversation data is stored on any server.
 
-## Adding a post
+## Key design decisions & tradeoffs
 
-Each post is a single markdown file in \`src/content/blog/\`. To publish a new one, I add a file like this:
+- **Embedding corpus in system prompt over RAG (for now).** With a ~3k-token corpus, stuffing the whole thing into the system prompt is simpler and cheaper than standing up embeddings and a vector store. RAG is the natural next step and a good learning exercise, but it wouldn't measurably improve answers at this corpus size.
+- **Free models over paid.** Zero running cost was a hard goal, and the free models handle resume questions well. The cost of that choice is the 50 requests/day account cap, which the per-IP rate limit exists to protect.
+- **Per-IP rate limiting over an off-topic gate.** A pre-filter that classifies every question before answering would add latency to every legitimate request, to defend against abuse that is hypothetical, free, and self-healing (the quota resets daily). I chose to bound the damage with a per-IP daily limit instead, and left the gate as an option to revisit if real abuse shows up.
+- **Client-held conversation history over server storage.** Keeping history in the browser keeps the Worker stateless, sidesteps the problem of identifying anonymous users, and means I never store anyone's conversation.
 
-\`\`\`markdown
----
-title: 'My New Post'
-description: 'One-line summary shown in listings and search results.'
-pubDate: 2026-08-01
-category: tech
-tags: [optional, tags]
----
+## Security & abuse model
 
-The post content, in plain markdown.
-\`\`\`
+Everything arriving at the Worker is treated as untrusted, and a few layers handle that:
 
-Commit, push, and it's live a minute later. That's the whole workflow.
+- **CORS** restricts which origins a browser will let call the Worker, so another website's front-end can't drive the bot through its visitors' browsers.
+- **Per-IP rate limiting** (in Workers KV) caps any single IP's daily questions, protecting the shared request budget.
+- **System Prompt** — the system prompt tells the model to answer only from the corpus and to ignore instructions embedded in user input, and the Worker only accepts \`user\`/\`assistant\` roles in replayed history, so a client can't smuggle in a fake \`system\` message.
+- **Escape-first rendering** — model output is rendered as untrusted content (HTML is escaped, links are scheme-checked), because a prompt-injected model is effectively untrusted input inside my page.
 
-## Categories are free
+The honest gap I live with for now is that the Worker URL is public. CORS only binds browsers, so a non-browser client (curl, a script) can call the endpoint directly and spend requests. Real auth isn't a fix here — the whole point is to serve anonymous recruiters, who can't be asked to log in. The realistic tool, if abuse ever materializes, is a humanness challenge like Cloudflare Turnstile. Given that the models are free and the daily cap self-heals, the rate limiter is a reasonable place to stop for now.
 
-There's no registry of categories. The \`category\` frontmatter field can be anything — \`tech\`, \`movies\`, \`books\`, \`travel\` — and the site automatically generates a listing page at \`/blog/category/<name>/\` for every category that has at least one post. Adding a new category is just using it.
+## Cost & scaling
 
-## Drafts
+The total cost of building this entire project with Claude Code (using the Fable 5 model) was about $2, per the statusline in my Claude Code session. The running cost is $0 — the models and the Cloudflare / GitHub Pages tiers are all free. The one bottleneck is the 50 requests/day OpenRouter cap, which a small amount of credit or a low-cost paid model would remove.
 
-Setting \`draft: true\` in the frontmatter keeps a post out of the build entirely. I keep half-written posts in the repo without publishing them.
-
-That's it — see you in the next post.
 `;
