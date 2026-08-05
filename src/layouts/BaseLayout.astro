@@ -13,9 +13,17 @@ interface Props {
   type?: 'website' | 'article';
   /** Set on pages that embed their own chat (e.g. /chat) */
   hideChatWidget?: boolean;
+  /** Widens the main container to 1080px (home, projects) */
+  wide?: boolean;
 }
 
-const { title, description = site.metaDescription, type = 'website', hideChatWidget = false } = Astro.props;
+const {
+  title,
+  description = site.metaDescription,
+  type = 'website',
+  hideChatWidget = false,
+  wide = false,
+} = Astro.props;
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(profileImg.src, Astro.site);
 ---
@@ -26,6 +34,12 @@ const ogImage = new URL(profileImg.src, Astro.site);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="canonical" href={pageUrl} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="alternate" type="application/rss+xml" title={`${site.brandName} — Blog`} href="/rss.xml" />
@@ -62,7 +76,7 @@ const ogImage = new URL(profileImg.src, Astro.site);
   </head>
   <body>
     <Header />
-    <main class="container">
+    <main class:list={['container', { wide }]}>
       <slot />
     </main>
     <Footer />

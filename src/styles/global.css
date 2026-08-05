@@ -1,37 +1,59 @@
 :root {
-  --bg: #ffffff;
-  --bg-soft: #f6f7f9;
-  --text: #1a202c;
-  --text-muted: #5a6472;
-  --accent: #4f46e5;
-  --accent-soft: #eef2ff;
-  --border: #e2e8f0;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --max-width: 900px;
+  --font-serif: 'Spectral', serif;
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --bg: oklch(97% 0.004 250);
+  --bg-soft: oklch(93.5% 0.008 260);
+  --card-bg: oklch(99% 0.002 250);
+  --text: oklch(22% 0.015 260);
+  --text-muted: oklch(38% 0.015 260);
+  --text-faint: oklch(48% 0.012 260);
+  --accent: oklch(64% 0.16 35);
+  --accent-hover: oklch(54% 0.16 35);
+  --accent-soft: oklch(94% 0.03 35);
+  --accent-soft-text: oklch(45% 0.14 35);
+  --border: oklch(90% 0.008 260);
+  --ink: oklch(22% 0.015 260);
+  --on-ink: oklch(99% 0.002 250);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --max-width: 800px;
+  --max-width-wide: 1080px;
 }
 
 /* Explicit user choice (set by the theme toggle, persisted in localStorage) */
 :root[data-theme='dark'] {
-  --bg: #0f1420;
-  --bg-soft: #1a2130;
-  --text: #e6e9ef;
-  --text-muted: #9aa5b5;
-  --accent: #818cf8;
-  --accent-soft: #232b45;
-  --border: #2a3346;
+  --bg: oklch(20% 0.012 260);
+  --bg-soft: oklch(26% 0.014 260);
+  --card-bg: oklch(24% 0.013 260);
+  --text: oklch(92% 0.006 260);
+  --text-muted: oklch(74% 0.012 260);
+  --text-faint: oklch(60% 0.012 260);
+  --accent: oklch(72% 0.14 35);
+  --accent-hover: oklch(78% 0.14 35);
+  --accent-soft: oklch(33% 0.05 35);
+  --accent-soft-text: oklch(82% 0.09 35);
+  --border: oklch(33% 0.014 260);
+  --ink: oklch(92% 0.006 260);
+  --on-ink: oklch(18% 0.012 260);
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* System preference fallback for no-JS visitors (values must mirror the block above) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0f1420;
-    --bg-soft: #1a2130;
-    --text: #e6e9ef;
-    --text-muted: #9aa5b5;
-    --accent: #818cf8;
-    --accent-soft: #232b45;
-    --border: #2a3346;
+    --bg: oklch(20% 0.012 260);
+    --bg-soft: oklch(26% 0.014 260);
+    --card-bg: oklch(24% 0.013 260);
+    --text: oklch(92% 0.006 260);
+    --text-muted: oklch(74% 0.012 260);
+    --text-faint: oklch(60% 0.012 260);
+    --accent: oklch(72% 0.14 35);
+    --accent-hover: oklch(78% 0.14 35);
+    --accent-soft: oklch(33% 0.05 35);
+    --accent-soft-text: oklch(82% 0.09 35);
+    --border: oklch(33% 0.014 260);
+    --ink: oklch(92% 0.006 260);
+    --on-ink: oklch(18% 0.012 260);
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   }
 }
@@ -46,8 +68,7 @@ html {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
   line-height: 1.65;
@@ -60,11 +81,14 @@ a {
 }
 
 a:hover {
+  color: var(--accent-hover);
   text-decoration: underline;
 }
 
 h1, h2, h3, h4 {
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--text);
 }
 
@@ -104,25 +128,29 @@ blockquote {
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding: 0 2rem;
+}
+
+.container.wide {
+  max-width: var(--max-width-wide);
 }
 
 /* Shared bits */
 .pill {
   display: inline-block;
   background: var(--accent-soft);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 0.15rem 0.75rem;
+  color: var(--accent-soft-text);
+  border-radius: 5px;
+  padding: 0.3rem 0.7rem;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .card {
-  background: var(--bg);
+  background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  padding: 1.75rem;
   box-shadow: var(--card-shadow);
 }
 
@@ -132,12 +160,13 @@ blockquote {
 
 .btn {
   display: inline-block;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 8px;
-  padding: 0.5rem 1.1rem;
+  background: var(--ink);
+  color: var(--on-ink);
+  border-radius: 6px;
+  padding: 0.7rem 1.35rem;
   font-weight: 600;
   font-size: 0.95rem;
+  border: 1.5px solid var(--ink);
 }
 
 .btn:hover {
@@ -145,7 +174,61 @@ blockquote {
   filter: brightness(1.1);
 }
 
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+
+.btn-ghost:hover {
+  background: var(--accent-soft);
+  filter: none;
+}
+
+.link-arrow {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.link-arrow:hover {
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
 .section-title {
-  font-size: 1.5rem;
-  margin: 2.5rem 0 1rem;
+  font-size: 1.6rem;
+  margin: 0 0 1.25rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.section-title:first-of-type {
+  border-top: none;
+}
+
+/* Dash-marker lists (highlights, experience bullets) */
+.dash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.dash-list li {
+  position: relative;
+  padding-left: 1.4em;
+}
+
+.dash-list li::before {
+  content: '—';
+  color: var(--accent);
+  position: absolute;
+  left: 0;
 }
