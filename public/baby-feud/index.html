@@ -98,11 +98,7 @@ body{
 .pot .pval{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05}
 .pot .mult{font-size:12px;font-weight:700;opacity:.8}
 
-/* ---------- strikes ---------- */
-.strikes{display:flex;gap:10px;justify-content:center;margin-top:14px;min-height:44px}
-.x{width:44px;height:44px;border-radius:10px;border:2px dashed rgba(255,255,255,.16);
-  display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:26px;font-weight:700;color:transparent}
-.x.on{background:var(--coral);border:2px solid #ff9d93;color:#fff;box-shadow:0 6px 18px rgba(255,111,97,.45)}
+/* ---------- wrong answer ---------- */
 #bigx{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:60}
 #bigx.show{display:flex;animation:pop .7s ease forwards}
 #bigx span{font-family:var(--display);font-weight:700;font-size:min(46vw,420px);color:var(--coral);
@@ -163,7 +159,6 @@ button.ghost{background:transparent}
 
   <div class="board">
     <div class="slots" id="slots"></div>
-    <div class="strikes" id="strikes"></div>
   </div>
 
   <div class="scorerow">
@@ -272,9 +267,6 @@ function render(){
       '<span class="apts">'+ans[1]+'</span></div></div>';
   }).join("");
 
-  document.getElementById("strikes").innerHTML =
-    [0,1,2].map(function(i){ return '<div class="x '+(S.strikes>i?"on":"")+'">✕</div>'; }).join("");
-
   document.getElementById("pot").textContent = pot();
   /* A zero pot under a full board would look broken, so name the reason. */
   var done = rev.every(function(v){ return v; }) && pot() === 0;
@@ -296,16 +288,21 @@ function showBigX(){
 /* ===================== INCOMING STATE ===================== */
 /* The phone sends whole snapshots, so the cue for a sound is the difference
    between what was on the board and what just arrived. */
+var seeded = false;
 function applyRemote(next){
+  /* The first snapshot catches a fresh board up to a game already running, so
+     it renders silently instead of replaying every reveal at once. */
+  if(!seeded){ seeded = true; S = next; render(); return; }
+
   var sameRound = next.qi === S.qi;
   var newlyRevealed = sameRound && next.revealed[next.qi].some(function(v,i){
     return v && !S.revealed[S.qi][i];
   });
-  var newStrike = sameRound && next.strikes > S.strikes;
+  var wrong = next.buzz > S.buzz;
 
   S = next;
   render();
-  if(newStrike){ buzzSound(); showBigX(); }
+  if(wrong){ buzzSound(); showBigX(); }
   else if(newlyRevealed){ dingSound(); }
 }
 
@@ -319,19 +316,19 @@ function reveal(i){
   if(!was) dingSound();
   pushLocal();
 }
-function addStrike(){
-  if(S.strikes<3){ S.strikes++; buzzSound(); showBigX(); }
+function wrongAnswer(){
+  S.buzz++;
+  buzzSound(); showBigX();
   pushLocal();
 }
 function goto(i){
   S.qi = Math.max(0, Math.min(QUESTIONS.length-1, i));
-  S.strikes = 0;
   pushLocal();
 }
 
 document.addEventListener("keydown",function(e){
   if(e.key>="1" && e.key<="6") reveal(+e.key-1);
-  else if(e.key==="x" || e.key==="X") addStrike();
+  else if(e.key==="x" || e.key==="X") wrongAnswer();
   else if(e.key==="ArrowRight") goto(S.qi+1);
   else if(e.key==="ArrowLeft") goto(S.qi-1);
 });

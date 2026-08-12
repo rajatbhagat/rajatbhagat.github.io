@@ -60,6 +60,8 @@ button:active{transform:scale(.98)}
 button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 button.primary{background:var(--marigold);color:#3a2a06;border-color:#f0a92c}
 button.danger{background:var(--coral);color:#fff;border-color:#ff9d93}
+/* Hit constantly through a round, so it gets a thumb-sized target. */
+button.bigx{width:100%;font-family:var(--display);font-weight:700;font-size:18px;padding:19px 14px}
 button:disabled{opacity:.4}
 .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -217,12 +219,8 @@ function panelHTML(){
   '</div>'+
 
   '<div class="hsec">'+
-    '<h3>Strikes — '+S.strikes+' of 3</h3>'+
-    '<div class="hgrid">'+
-      '<button class="danger" data-act="strike">Add strike ✕</button>'+
-      '<button data-act="clearStrikes">Clear strikes</button>'+
-    '</div>'+
-    (S.strikes>=3 ? '<p class="tiny" style="margin-top:10px;color:var(--coral)"><strong>Three strikes.</strong> The other team gets one guess at any remaining answer. If they get it, award the pot to them — if not, it goes to the team that had control.</p>' : '')+
+    '<h3>Wrong answer</h3>'+
+    '<button class="danger bigx" data-act="buzz">Show ✕ on the screen</button>'+
   '</div>'+
 
   '<div class="hsec">'+
@@ -232,7 +230,7 @@ function panelHTML(){
       '<button class="primary" data-act="check">Check</button>'+
     '</div>'+
     '<div class="flash" id="flash"></div>'+
-    '<p class="tiny">A match reveals that answer. No match adds a strike.</p>'+
+    '<p class="tiny">A match reveals that answer. No match flashes the ✕.</p>'+
   '</div>'+
 
   '<div class="hsec">'+
@@ -240,11 +238,11 @@ function panelHTML(){
     (done
       ? '<p class="tiny" style="margin:0 0 10px;color:var(--mint)"><strong>Round complete.</strong> Every answer is up and paid out — move to the next round.</p>'
       : p===0
-        ? '<p class="tiny" style="margin:0 0 10px">Nothing to award yet. Reveal what '+esc(S.control ? S.names[S.control] : "the team in control")+' guesses, then bank it.</p>'
+        ? '<p class="tiny" style="margin:0 0 10px">Nothing new on the board, so this just hands the turn over.</p>'
         : '<p class="tiny" style="margin:0 0 10px">Banks '+p+' and passes control to the other team.</p>')+
     '<div class="hgrid">'+
-      '<button class="primary" data-act="awardA"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
-      '<button class="primary" data-act="awardB"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
+      '<button class="primary" data-act="awardA"'+(done?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
+      '<button class="primary" data-act="awardB"'+(done?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
     '</div>'+
     '<div class="hgrid3" style="margin-top:8px">'+
       [1,2,3].map(function(m){
@@ -341,27 +339,25 @@ document.addEventListener("click", function(e){
   else if(act==="resetRound"){
     S.revealed[S.qi] = curQ().a.map(function(){ return false; });
     S.banked[S.qi] = curQ().a.map(function(){ return false; });
-    S.strikes = 0;
   }
-  else if(act==="strike"){ if(S.strikes<3) S.strikes++; }
-  else if(act==="clearStrikes"){ S.strikes = 0; }
+  else if(act==="buzz"){ S.buzz++; }
   else if(act==="awardA" || act==="awardB"){
-    var p = pot();
-    if(p <= 0) return;                           // nothing new on the board to pay out
+    if(roundDone()) return;                      // every answer is up and paid for
     var team = act==="awardA" ? "A" : "B";
-    S.scores[team] += p;
+    /* Zero when the team in control turned nothing up — the tap then simply
+       hands the turn over. */
+    S.scores[team] += pot();
     curRev().forEach(function(up,i){ if(up) curBank()[i] = true; });
     S.control = team === "A" ? "B" : "A";        // the other team plays on
-    S.strikes = 0;                               // and starts its turn with a clean slate
   }
-  else if(act==="prev"){ S.qi = Math.max(0,S.qi-1); S.strikes = 0; }
-  else if(act==="next"){ S.qi = Math.min(QUESTIONS.length-1,S.qi+1); S.strikes = 0; }
-  else if(act==="goto"){ S.qi = +el.dataset.i; S.strikes = 0; }
+  else if(act==="prev"){ S.qi = Math.max(0,S.qi-1); }
+  else if(act==="next"){ S.qi = Math.min(QUESTIONS.length-1,S.qi+1); }
+  else if(act==="goto"){ S.qi = +el.dataset.i; }
   else if(act==="mult"){ S.mult = +el.dataset.m; }
   else if(act==="ctrlA"){ S.control = S.control==="A" ? null : "A"; }
   else if(act==="ctrlB"){ S.control = S.control==="B" ? null : "B"; }
   else if(act==="resetGame"){
-    if(!confirm("Reset scores, strikes and every revealed answer?")) return;
+    if(!confirm("Reset scores and every revealed answer?")) return;
     S = BF.newState();
   }
   else if(act==="check"){
@@ -374,9 +370,9 @@ document.addEventListener("click", function(e){
       commit();
       flashMsg("Match — “"+curQ().a[idx][0]+"” for "+curQ().a[idx][1]*S.mult+".","ok");
     } else {
-      if(S.strikes<3) S.strikes++;
+      S.buzz++;                                  // flash the ✕ on the board
       commit();
-      flashMsg("No match. Strike added.","no");
+      flashMsg("No match. ✕ on the screen.","no");
     }
     var inp2 = document.getElementById("guess");
     if(inp2){ inp2.value = ""; inp2.focus(); }
