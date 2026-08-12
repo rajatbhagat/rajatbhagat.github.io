@@ -248,6 +248,7 @@ document.addEventListener("keydown", unlockAudio);
 function curQ(){ return QUESTIONS[S.qi]; }
 function curRev(){ return S.revealed[S.qi]; }
 function pot(){
+  if(S.awarded[S.qi]) return 0;   // banked to a team already
   return curQ().a.reduce(function(sum,ans,i){ return sum + (curRev()[i] ? ans[1] : 0); }, 0) * S.mult;
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
@@ -271,7 +272,9 @@ function render(){
     [0,1,2].map(function(i){ return '<div class="x '+(S.strikes>i?"on":"")+'">✕</div>'; }).join("");
 
   document.getElementById("pot").textContent = pot();
-  document.getElementById("multLabel").textContent = "×"+S.mult;
+  /* A pot of zero with answers still showing would look broken, so say why. */
+  var won = S.awarded[S.qi];
+  document.getElementById("multLabel").textContent = won ? "Won by "+S.names[won] : "×"+S.mult;
   document.getElementById("scoreA").textContent = S.scores.A;
   document.getElementById("scoreB").textContent = S.scores.B;
   document.getElementById("nameA").textContent = S.names.A;
