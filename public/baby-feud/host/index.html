@@ -136,6 +136,7 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
 (function(){
 "use strict";
 var QUESTIONS = window.BABY_FEUD_QUESTIONS;
+var DEMO = window.BABY_FEUD_DEMO;
 var BF = window.BabyFeudSync;
 var Sync = BF.Sync;
 
@@ -144,13 +145,16 @@ var Sync = BF.Sync;
    mid-party never loses the scores. */
 var S = BF.loadState();
 
-function curQ(){ return QUESTIONS[S.qi]; }
-function curRev(){ return S.revealed[S.qi]; }
+/* Pointed at the example round while explaining, so reveal / reveal-all /
+   hide-all all work there without a second copy of each action. */
+function curQ(){ return S.phase==="demo" ? DEMO : QUESTIONS[S.qi]; }
+function curRev(){ return S.phase==="demo" ? S.demoRevealed : S.revealed[S.qi]; }
 /* Only what the team in control has turned up since the last award. Already
    paid-out answers stay on the board but no longer count. */
 var ROUND_VALUE = QUESTIONS[0].a.reduce(function(sum,ans){ return sum + ans[1]; }, 0);
 function curBank(){ return S.banked[S.qi]; }
 function pot(){
+  if(S.phase==="demo") return 0;   // the example round is not scored
   var rev = curRev(), bank = curBank();
   return curQ().a.reduce(function(sum,ans,i){
     return sum + (rev[i] && !bank[i] ? ans[1] : 0);
@@ -204,14 +208,63 @@ function homeHTML(){
   '</div>'+
 
   '<div class="hsec">'+
+    '<h3>Explain the game first?</h3>'+
+    '<button data-act="demo" style="width:100%">Show the example round</button>'+
+    '<p class="tiny" style="margin:9px 0 0">Puts a practice question on the big screen so you can walk everyone through it. Nothing is scored.</p>'+
+  '</div>'+
+
+  '<div class="hsec">'+
     '<h3>Ready?</h3>'+
     '<button class="primary big" data-act="start">Start game</button>'+
     '<p class="tiny" style="margin:10px 0 0">'+QUESTIONS.length+' rounds, '+ROUND_VALUE+' points a round. The answers appear here once you start.</p>'+
   '</div>';
 }
 
+/* The example round: the same answer rows and the same ✕, so the walkthrough
+   matches what happens for real. No pot, no scores, no round navigation. */
+function demoHTML(){
+  var rev = S.demoRevealed;
+  return ''+
+  '<div class="hsec">'+
+    '<h3>Example round</h3>'+
+    '<p class="hq">'+esc(DEMO.q)+'</p>'+
+    '<p class="tiny" style="margin:8px 0 0">Tap an answer to flip it on the big screen, exactly as in a real round. Nothing here is scored.</p>'+
+  '</div>'+
+
+  '<div class="hsec">'+
+    '<h3>Answers — tap to reveal</h3>'+
+    '<div class="alist">'+
+      DEMO.a.map(function(a,i){
+        return '<button class="arow '+(rev[i]?"rev":"")+'" data-act="reveal" data-i="'+i+'">'+
+          '<span class="n">'+(i+1)+'</span>'+
+          '<span class="t">'+esc(a[0])+'</span>'+
+          '<span class="p">'+a[1]+'</span>'+
+          '<span class="tick">'+(rev[i]?"✓":"")+'</span></button>';
+      }).join("")+
+    '</div>'+
+    '<div class="hgrid" style="margin-top:10px">'+
+      '<button data-act="revealAll">Reveal all</button>'+
+      '<button data-act="resetRound">Hide all</button>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="hsec">'+
+    '<h3>Wrong answer</h3>'+
+    '<button class="danger big" data-act="buzz">WRONG GUESS</button>'+
+    '<p class="tiny" style="margin:9px 0 0">Worth showing them once so the ✕ is not a surprise.</p>'+
+  '</div>'+
+
+  '<div class="hsec">'+
+    '<h3>Done explaining?</h3>'+
+    '<button class="primary big" data-act="start">Start the real game</button>'+
+    '<p class="tiny" style="margin:9px 0 12px">Scores start at zero.</p>'+
+    '<button data-act="home" style="width:100%">Back to the title screen</button>'+
+  '</div>';
+}
+
 function panelHTML(){
   if(S.phase === "home") return homeHTML();
+  if(S.phase === "demo") return demoHTML();
   var q=curQ(), rev=curRev(), bank=curBank(), p=pot(), done=roundDone();
   return ''+
   '<div class="hsec">'+
@@ -253,7 +306,7 @@ function panelHTML(){
       '<button class="primary" data-act="check">Check</button>'+
     '</div>'+
     '<div class="flash" id="flash"></div>'+
-    '<p class="tiny">A match reveals that answer. No match flashes the ✕.</p>'+
+    '<p class="tiny">A match reveals that answer. No match just says so — calling it wrong is your call.</p>'+
   '</div>'+
 
   '<div class="hsec">'+
@@ -362,12 +415,20 @@ document.addEventListener("click", function(e){
   }
   else if(act==="revealAll"){ curRev().forEach(function(_,i){ curRev()[i] = true; }); }
   else if(act==="resetRound"){
-    S.revealed[S.qi] = curQ().a.map(function(){ return false; });
-    S.banked[S.qi] = curQ().a.map(function(){ return false; });
+    if(S.phase==="demo"){
+      S.demoRevealed = DEMO.a.map(function(){ return false; });
+    } else {
+      S.revealed[S.qi] = curQ().a.map(function(){ return false; });
+      S.banked[S.qi] = curQ().a.map(function(){ return false; });
+    }
   }
   else if(act==="buzz"){ S.buzz++; }
   else if(act==="start"){ S.phase = "playing"; }
   else if(act==="home"){ S.phase = "home"; }
+  else if(act==="demo"){
+    S.phase = "demo";
+    S.demoRevealed = DEMO.a.map(function(){ return false; });   // always start clean
+  }
   else if(act==="awardA" || act==="awardB"){
     if(roundDone()) return;                      // every answer is up and paid for
     var team = act==="awardA" ? "A" : "B";
@@ -397,9 +458,11 @@ document.addEventListener("click", function(e){
       commit();
       flashMsg("Match — “"+curQ().a[idx][0]+"” for "+curQ().a[idx][1]*S.mult+".","ok");
     } else {
-      S.buzz++;                                  // flash the ✕ on the board
-      commit();
-      flashMsg("No match. ✕ on the screen.","no");
+      /* Deliberately does NOT flash the ✕. The matcher compares words, guests
+         answer by meaning, so a right answer can easily fail to match — and
+         throwing a giant cross at someone who was correct is the one thing
+         that would actually sour the game. You judge; the button is there. */
+      flashMsg("No match — tap the answer if they got it, or WRONG GUESS if not.","no");
     }
     var inp2 = document.getElementById("guess");
     if(inp2){ inp2.value = ""; inp2.focus(); }

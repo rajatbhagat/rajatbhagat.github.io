@@ -116,6 +116,9 @@ body{
   background:var(--marigold);color:#3a2a06;border-color:#f0a92c;padding:14px 34px;border-radius:14px}
 .bigstart:hover{background:#ffd071;border-color:#f0a92c}
 .hometip{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.6}
+.demobar{background:rgba(127,214,193,.14);border:1px solid rgba(127,214,193,.5);color:var(--mint);
+  border-radius:12px;padding:9px 14px;margin-bottom:14px;text-align:center;
+  font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 
 /* ---------- wrong answer ---------- */
 #bigx{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:60}
@@ -191,6 +194,7 @@ button.ghost{background:transparent}
   </div>
 
   <div id="game">
+  <div class="demobar" id="demobar">Example round — nothing here is scored</div>
   <div class="question">
     <span class="eyebrow" id="qnum">Round 1</span>
     <p id="qtext"></p>
@@ -243,6 +247,7 @@ button.ghost{background:transparent}
 (function(){
 "use strict";
 var QUESTIONS = window.BABY_FEUD_QUESTIONS;
+var DEMO = window.BABY_FEUD_DEMO;
 var Sync = window.BabyFeudSync.Sync;
 
 /* The board is a display: it renders whatever state the phone last sent, and
@@ -280,11 +285,14 @@ document.addEventListener("click", unlockAudio);
 document.addEventListener("keydown", unlockAudio);
 
 /* ===================== HELPERS ===================== */
-function curQ(){ return QUESTIONS[S.qi]; }
-function curRev(){ return S.revealed[S.qi]; }
+/* The example round rides the normal board rendering, so what the players see
+   while you explain is exactly what they will see when it counts. */
+function curQ(){ return S.phase==="demo" ? DEMO : QUESTIONS[S.qi]; }
+function curRev(){ return S.phase==="demo" ? S.demoRevealed : S.revealed[S.qi]; }
 /* Only answers turned up since the last award; paid-out ones stay on the
    board but stop counting. */
 function pot(){
+  if(S.phase==="demo") return 0;   // the example round is not scored
   var rev = curRev(), bank = S.banked[S.qi];
   return curQ().a.reduce(function(sum,ans,i){
     return sum + (rev[i] && !bank[i] ? ans[1] : 0);
@@ -297,9 +305,12 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
 var ROUND_VALUE = QUESTIONS[0].a.reduce(function(sum,ans){ return sum + ans[1]; }, 0);
 
 function render(){
-  var home = S.phase === "home";
+  var home = S.phase === "home", demo = S.phase === "demo";
   document.getElementById("home").style.display = home ? "" : "none";
   document.getElementById("game").style.display = home ? "none" : "";
+  document.getElementById("demobar").style.display = demo ? "" : "none";
+  /* No scores during the example round — there is nothing to score. */
+  document.querySelector(".scorerow").style.display = demo ? "none" : "";
   document.getElementById("homeA").textContent = S.names.A;
   document.getElementById("homeB").textContent = S.names.B;
   document.getElementById("hometip").textContent =
@@ -308,8 +319,8 @@ function render(){
   var q=curQ(), rev=curRev();
   document.getElementById("qcount").textContent = home
     ? QUESTIONS.length+" rounds"
-    : "Round "+(S.qi+1)+" of "+QUESTIONS.length;
-  document.getElementById("qnum").textContent = "Question "+(S.qi+1);
+    : demo ? "Example" : "Round "+(S.qi+1)+" of "+QUESTIONS.length;
+  document.getElementById("qnum").textContent = demo ? "Example" : "Question "+(S.qi+1);
   document.getElementById("qtext").textContent = q.q;
 
   document.getElementById("slots").innerHTML = q.a.map(function(ans,i){
