@@ -1,0 +1,35 @@
+/* Baby Feud questions and point values, transcribed from FINAL_Baby_Feud.key.
+   Answers are sorted highest-to-lowest points.
+   Loaded by both the board and the host panel so the two can never disagree. */
+window.BABY_FEUD_QUESTIONS = [
+ {q:"Name something new parents miss most about their pre-baby lives",
+  a:[["Sleep",59],["Freedom",15],["Sexy time",8],["Going out",7],["Date night",3],["Travel",2]]},
+ {q:"Name something new parents constantly buy",
+  a:[["Diapers",70],["Wipes / cream",8],["Baby clothes",7],["Take-out",4],["Coffee",3],["Formula",2]]},
+ {q:"Name an event parents do not want to miss in their child's life",
+  a:[["1st steps",48],["1st word",19],["Birthdays",11],["1st smile",5],["Birth",5],["Wedding",3]]},
+ {q:"Name something people do to entertain a baby",
+  a:[["Sing",29],["Funny faces",28],["Peekaboo",21],["Dance",6],["Baby talk",5],["Read",3]]},
+ {q:"Name a good toy for a baby",
+  a:[["Rattle",46],["Sensory toys",8],["Teether",7],["Musical toys",6],["Stuffed animal",5],["Play mat",5]]},
+ {q:"Name something that's cute when a baby does it but not when an adult does it",
+  a:[["Fart",59],["Poop / pee pants",11],["Burp",6],["Drool",4],["Blow bubbles",3],["Messy eating",2]]},
+ {q:"Name something new parents will try to do when the baby's asleep",
+  a:[["Sleep",41],["Clean / chores",20],["Sexy time",11],["Shower",7],["Eat a good meal",7],["Screen time",4]]},
+ {q:"Name a reason the baby might be crying",
+  a:[["Hangry",65],["Tired",11],["Farts / gas",8],["Dirty diaper",7],["Colic",1],["Teething",1]]},
+ {q:"Name a place where people hope not to have to sit next to a baby",
+  a:[["Airplane",68],["Restaurant",12],["Movies",12],["Bar",1],["Bus / train",1],["Library",1]]},
+ {q:"Name a situation you don't want to be in when your water breaks",
+  a:[["Working",27],["Driving",17],["Shopping",13],["Airplane",9],["Far from home",5],["On the street",5]]},
+ {q:"The parents just said “oh no!” … what did the baby do?",
+  a:[["Vomited",60],["Blowout / poop",45],["Hurt themselves",7],["Dropped / threw something",4],["Pee/poop during diaper change",4],["Put something in their mouth",3]]},
+ {q:"If you could go back to being a baby for a day, what would you enjoy the most?",
+  a:[["Big naps",49],["Snuggles",14],["Being carried",10],["No responsibilities",9],["Being catered to",2],["Playtime",2]]},
+ {q:"Name something your partner does that's just like a baby",
+  a:[["Whine",18],["Fart",18],["Fall asleep anywhere",16],["Always eating",7],["Noisy sleep",5],["Messy eating",4]]},
+ {q:"Name something you would not want a babysitter doing on the job",
+  a:[["Drugs",25],["Drinking",24],["Sleeping",22],["Phone / screens",10],["Sexy time",5],["Throw party",5]]},
+ {q:"Name something a baby shouldn't touch, but might try to",
+  a:[["Outlets",26],["Hot stove / oven",17],["Dirty diaper",7],["Animals",7],["Hot drink / food",5],["Knives",5]]}
+];
