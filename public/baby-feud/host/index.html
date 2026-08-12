@@ -240,11 +240,11 @@ function panelHTML(){
     (done
       ? '<p class="tiny" style="margin:0 0 10px;color:var(--mint)"><strong>Round complete.</strong> Every answer is up and paid out — move to the next round.</p>'
       : p===0
-        ? '<p class="tiny" style="margin:0 0 10px">Nothing to award yet. Reveal what '+esc(S.control ? S.names[S.control] : "the team in control")+' guesses, then bank it.</p>'
+        ? '<p class="tiny" style="margin:0 0 10px">Nothing new on the board, so this just hands the turn over.</p>'
         : '<p class="tiny" style="margin:0 0 10px">Banks '+p+' and passes control to the other team.</p>')+
     '<div class="hgrid">'+
-      '<button class="primary" data-act="awardA"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
-      '<button class="primary" data-act="awardB"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
+      '<button class="primary" data-act="awardA"'+(done?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
+      '<button class="primary" data-act="awardB"'+(done?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
     '</div>'+
     '<div class="hgrid3" style="margin-top:8px">'+
       [1,2,3].map(function(m){
@@ -346,10 +346,11 @@ document.addEventListener("click", function(e){
   else if(act==="strike"){ if(S.strikes<3) S.strikes++; }
   else if(act==="clearStrikes"){ S.strikes = 0; }
   else if(act==="awardA" || act==="awardB"){
-    var p = pot();
-    if(p <= 0) return;                           // nothing new on the board to pay out
+    if(roundDone()) return;                      // every answer is up and paid for
     var team = act==="awardA" ? "A" : "B";
-    S.scores[team] += p;
+    /* Zero when the team in control turned nothing up — the tap then simply
+       hands the turn over, which is how a team that strikes out passes on. */
+    S.scores[team] += pot();
     curRev().forEach(function(up,i){ if(up) curBank()[i] = true; });
     S.control = team === "A" ? "B" : "A";        // the other team plays on
     S.strikes = 0;                               // and starts its turn with a clean slate
