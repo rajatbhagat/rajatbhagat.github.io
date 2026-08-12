@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baby Feud</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#161028;
+  --plum:#221739;
+  --plum-2:#2d2049;
+  --slat:#0f5f6b;
+  --slat-2:#0b4a54;
+  --cream:#fdf6e7;
+  --marigold:#ffc247;
+  --coral:#ff6f61;
+  --mint:#7fd6c1;
+  --dim:#9c92b8;
+  --display:"Fredoka","Trebuchet MS",Verdana,sans-serif;
+  --body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(circle at 50% 0%,#3a2a5e 0%,var(--plum) 45%,var(--ink) 100%);
+  color:var(--cream);
+  font-family:var(--body);
+  min-height:100vh;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 96px}
+
+/* ---------- header ---------- */
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.logo{font-family:var(--display);font-weight:700;font-size:clamp(26px,4.4vw,44px);letter-spacing:.02em;line-height:1;
+  color:var(--marigold);text-shadow:0 3px 0 #b8791a,0 6px 16px rgba(0,0,0,.45)}
+.logo small{display:block;font-size:.34em;letter-spacing:.34em;color:var(--mint);text-shadow:none;font-weight:500;margin-top:6px}
+.qcount{font-size:13px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+
+/* ---------- question ---------- */
+.question{
+  background:linear-gradient(180deg,var(--plum-2),#241a3d);
+  border:2px solid rgba(255,194,71,.35);
+  border-radius:20px;padding:18px 22px;margin-bottom:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.35);
+}
+.question p{margin:0;font-family:var(--display);font-weight:600;font-size:clamp(19px,2.9vw,32px);line-height:1.25}
+.question .eyebrow{font-family:var(--body);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--marigold);font-weight:700;margin-bottom:8px;display:block}
+
+/* ---------- board ---------- */
+.board{
+  background:linear-gradient(180deg,#123f47,#0a2b31);
+  border-radius:22px;padding:14px;border:2px solid rgba(127,214,193,.22);
+  box-shadow:0 18px 44px rgba(0,0,0,.45);
+}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.slots{grid-template-columns:1fr}}
+.slot{
+  position:relative;height:64px;border-radius:12px;overflow:hidden;
+  background:linear-gradient(180deg,var(--slat),var(--slat-2));
+  border:1px solid rgba(255,255,255,.09);
+  display:flex;align-items:center;
+  perspective:800px;
+}
+.slot .face{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  transition:transform .45s cubic-bezier(.2,.7,.3,1);backface-visibility:hidden;
+}
+.slot .front{transform:rotateX(0deg)}
+.slot .back{transform:rotateX(180deg);background:var(--cream);color:var(--ink);
+  justify-content:space-between;padding:0 16px}
+.slot.open .front{transform:rotateX(-180deg)}
+.slot.open .back{transform:rotateX(0deg)}
+.rank{font-family:var(--display);font-size:26px;font-weight:700;color:rgba(253,246,231,.75)}
+.atext{font-family:var(--display);font-weight:600;font-size:clamp(15px,2vw,23px);letter-spacing:.01em;text-align:left;flex:1;padding-right:12px}
+.apts{font-family:var(--display);font-weight:700;font-size:24px;background:var(--plum);color:var(--marigold);
+  border-radius:9px;padding:2px 12px;min-width:56px;text-align:center}
+
+/* ---------- scoreboard ---------- */
+.scorerow{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-top:16px}
+@media(max-width:700px){.scorerow{grid-template-columns:1fr 1fr;}.pot{grid-column:1/-1;order:-1}}
+.team{
+  background:var(--plum-2);border:2px solid rgba(255,255,255,.08);border-radius:16px;padding:12px 14px;text-align:center;
+  transition:border-color .2s,box-shadow .2s;
+}
+.team.control{border-color:var(--marigold);box-shadow:0 0 0 3px rgba(255,194,71,.16)}
+.team .tname{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.team.control .tname{color:var(--marigold)}
+.team .tscore{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05}
+.pot{
+  background:linear-gradient(180deg,var(--marigold),#f0a92c);color:#3a2a06;border-radius:16px;
+  padding:12px 24px;text-align:center;min-width:150px;display:flex;flex-direction:column;justify-content:center;
+}
+.pot .plabel{font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;opacity:.75}
+.pot .pval{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05}
+.pot .mult{font-size:12px;font-weight:700;opacity:.8}
+
+/* ---------- strikes ---------- */
+.strikes{display:flex;gap:10px;justify-content:center;margin-top:14px;min-height:44px}
+.x{width:44px;height:44px;border-radius:10px;border:2px dashed rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:26px;font-weight:700;color:transparent}
+.x.on{background:var(--coral);border:2px solid #ff9d93;color:#fff;box-shadow:0 6px 18px rgba(255,111,97,.45)}
+#bigx{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:60}
+#bigx.show{display:flex;animation:pop .7s ease forwards}
+#bigx span{font-family:var(--display);font-weight:700;font-size:min(46vw,420px);color:var(--coral);
+  text-shadow:0 0 60px rgba(255,111,97,.6)}
+@keyframes pop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.05);opacity:1}75%{opacity:1}100%{transform:scale(1.1);opacity:0}}
+
+/* ---------- pairing card ---------- */
+.pair{
+  margin-top:18px;background:linear-gradient(180deg,var(--plum-2),#241a3d);
+  border:2px solid rgba(127,214,193,.35);border-radius:20px;padding:20px 22px;
+  display:flex;gap:26px;align-items:center;flex-wrap:wrap;justify-content:center;text-align:center;
+}
+.pair.hide{display:none}
+.pair .code{
+  font-family:var(--display);font-weight:700;font-size:clamp(44px,9vw,84px);line-height:1;
+  color:var(--marigold);letter-spacing:.12em;text-shadow:0 3px 0 #b8791a;
+}
+.pair .clabel{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+.pair .steps{text-align:left;font-size:15px;line-height:1.7;max-width:430px}
+.pair .steps b{color:var(--mint);font-family:var(--display)}
+.pair .url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;color:var(--cream);
+  background:#1b1330;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:3px 8px;display:inline-block}
+
+/* ---------- bottom bar ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(15,10,30,.92);
+  backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px;
+  display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+button{font-family:var(--body);font-weight:600;font-size:14px;border-radius:10px;border:1px solid rgba(255,255,255,.16);
+  background:var(--plum-2);color:var(--cream);padding:9px 14px;cursor:pointer;transition:.15s}
+button:hover{background:#39295c;border-color:rgba(255,255,255,.3)}
+button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+button.ghost{background:transparent}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--dim);
+  background:#1b1330;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 13px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none}
+.status.on .dot{background:var(--mint);box-shadow:0 0 8px var(--mint)}
+.status.on{color:var(--mint)}
+.status.wait .dot{background:var(--marigold);animation:blink 1.4s ease-in-out infinite}
+.status.bad .dot{background:var(--coral)}
+.status.bad{color:var(--coral)}
+@keyframes blink{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bigx"><span>✕</span></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="logo">BABY FEUD<small>SURVEY SAYS</small></div>
+    <div class="qcount" id="qcount"></div>
+  </div>
+
+  <div class="question">
+    <span class="eyebrow" id="qnum">Round 1</span>
+    <p id="qtext"></p>
+  </div>
+
+  <div class="board">
+    <div class="slots" id="slots"></div>
+    <div class="strikes" id="strikes"></div>
+  </div>
+
+  <div class="scorerow">
+    <div class="team" id="teamA">
+      <div class="tname" id="nameA">Team Mama</div>
+      <div class="tscore" id="scoreA">0</div>
+    </div>
+    <div class="pot">
+      <div class="plabel">Round pot</div>
+      <div class="pval" id="pot">0</div>
+      <div class="mult" id="multLabel">×1</div>
+    </div>
+    <div class="team" id="teamB">
+      <div class="tname" id="nameB">Team Papa</div>
+      <div class="tscore" id="scoreB">0</div>
+    </div>
+  </div>
+
+  <div class="pair" id="pair">
+    <div>
+      <div class="clabel">Room code</div>
+      <div class="code" id="code">····</div>
+    </div>
+    <div class="steps">
+      <p style="margin:0 0 8px"><b>1.</b> On your phone, open<br><span class="url" id="hostUrl">…/baby-feud/host/</span></p>
+      <p style="margin:0"><b>2.</b> Type the room code. The answers appear on your phone and stay off this screen.</p>
+    </div>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="status" id="status"><span class="dot"></span><span id="statusText">Starting…</span></div>
+  <button class="ghost" id="fs">Fullscreen</button>
+  <button class="ghost" id="sound">Sound: on</button>
+  <button class="ghost" id="newcode">New code</button>
+</div>
+
+<script src="questions.js"></script>
+<script src="peerjs.min.js"></script>
+<script src="sync.js"></script>
+<script>
+(function(){
+"use strict";
+var QUESTIONS = window.BABY_FEUD_QUESTIONS;
+var Sync = window.BabyFeudSync.Sync;
+
+/* The board is a display: it renders whatever state the phone last sent, and
+   keeps a local copy only so the keyboard shortcuts still work if the phone
+   drops off. */
+var S = window.BabyFeudSync.newState();
+var soundOn = true;
+
+/* ===================== SOUND ===================== */
+/* Browsers refuse audio until the page has been interacted with, and reveals
+   are driven from a different device entirely — so the context is opened on
+   the first click or key here and resumed before every tone. */
+var ac = null;
+function unlockAudio(){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state === "suspended") ac.resume();
+  }catch(e){}
+}
+function tone(freq,dur,type,vol){
+  if(!soundOn) return;
+  try{
+    unlockAudio();
+    if(!ac) return;
+    var o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||"sine"; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol||0.18,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+dur);
+    o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+dur);
+  }catch(e){}
+}
+function dingSound(){ tone(880,.18,"sine",.2); setTimeout(function(){ tone(1320,.28,"sine",.16); },90); }
+function buzzSound(){ tone(150,.45,"sawtooth",.16); }
+document.addEventListener("click", unlockAudio);
+document.addEventListener("keydown", unlockAudio);
+
+/* ===================== HELPERS ===================== */
+function curQ(){ return QUESTIONS[S.qi]; }
+function curRev(){ return S.revealed[S.qi]; }
+function pot(){
+  return curQ().a.reduce(function(sum,ans,i){ return sum + (curRev()[i] ? ans[1] : 0); }, 0) * S.mult;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+/* ===================== RENDER ===================== */
+function render(){
+  var q=curQ(), rev=curRev();
+  document.getElementById("qcount").textContent = "Round "+(S.qi+1)+" of "+QUESTIONS.length;
+  document.getElementById("qnum").textContent = "Question "+(S.qi+1);
+  document.getElementById("qtext").textContent = q.q;
+
+  document.getElementById("slots").innerHTML = q.a.map(function(ans,i){
+    return '<div class="slot '+(rev[i]?"open":"")+'">'+
+      '<div class="face front"><span class="rank">'+(i+1)+'</span></div>'+
+      '<div class="face back"><span class="atext">'+esc(ans[0])+'</span>'+
+      '<span class="apts">'+ans[1]+'</span></div></div>';
+  }).join("");
+
+  document.getElementById("strikes").innerHTML =
+    [0,1,2].map(function(i){ return '<div class="x '+(S.strikes>i?"on":"")+'">✕</div>'; }).join("");
+
+  document.getElementById("pot").textContent = pot();
+  document.getElementById("multLabel").textContent = "×"+S.mult;
+  document.getElementById("scoreA").textContent = S.scores.A;
+  document.getElementById("scoreB").textContent = S.scores.B;
+  document.getElementById("nameA").textContent = S.names.A;
+  document.getElementById("nameB").textContent = S.names.B;
+  document.getElementById("teamA").classList.toggle("control", S.control==="A");
+  document.getElementById("teamB").classList.toggle("control", S.control==="B");
+}
+
+function showBigX(){
+  var el=document.getElementById("bigx");
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+  setTimeout(function(){ el.classList.remove("show"); },750);
+}
+
+/* ===================== INCOMING STATE ===================== */
+/* The phone sends whole snapshots, so the cue for a sound is the difference
+   between what was on the board and what just arrived. */
+function applyRemote(next){
+  var sameRound = next.qi === S.qi;
+  var newlyRevealed = sameRound && next.revealed[next.qi].some(function(v,i){
+    return v && !S.revealed[S.qi][i];
+  });
+  var newStrike = sameRound && next.strikes > S.strikes;
+
+  S = next;
+  render();
+  if(newStrike){ buzzSound(); showBigX(); }
+  else if(newlyRevealed){ dingSound(); }
+}
+
+/* ===================== LOCAL FALLBACK CONTROLS ===================== */
+/* If the phone is not connected these still drive the game from the laptop. */
+function pushLocal(){ Sync.send(S); render(); }
+function reveal(i){
+  if(i<0 || i>=curQ().a.length) return;
+  var was = curRev()[i];
+  curRev()[i] = !was;
+  if(!was) dingSound();
+  pushLocal();
+}
+function addStrike(){
+  if(S.strikes<3){ S.strikes++; buzzSound(); showBigX(); }
+  pushLocal();
+}
+function goto(i){
+  S.qi = Math.max(0, Math.min(QUESTIONS.length-1, i));
+  S.strikes = 0;
+  pushLocal();
+}
+
+document.addEventListener("keydown",function(e){
+  if(e.key>="1" && e.key<="6") reveal(+e.key-1);
+  else if(e.key==="x" || e.key==="X") addStrike();
+  else if(e.key==="ArrowRight") goto(S.qi+1);
+  else if(e.key==="ArrowLeft") goto(S.qi-1);
+});
+
+/* ===================== CONNECTION UI ===================== */
+var hostUrl = location.href.replace(/[?#].*$/,"").replace(/[^/]*$/,"") + "host/";
+document.getElementById("hostUrl").textContent = hostUrl.replace(/^https?:\/\//,"");
+
+function setStatus(status, detail, code){
+  var box = document.getElementById("status");
+  var txt = document.getElementById("statusText");
+  var pair = document.getElementById("pair");
+  document.getElementById("code").textContent = code || "····";
+
+  box.className = "status";
+  if(status === "connected"){
+    box.classList.add("on");
+    txt.textContent = "Phone connected · " + code;
+    pair.classList.add("hide");
+  } else if(status === "waiting"){
+    box.classList.add("wait");
+    txt.textContent = "Waiting for phone · " + code;
+    pair.classList.remove("hide");
+  } else if(status === "error"){
+    box.classList.add("bad");
+    txt.textContent = detail || "Connection problem";
+    pair.classList.remove("hide");
+  } else {
+    txt.textContent = "Starting…";
+    pair.classList.remove("hide");
+  }
+}
+
+document.getElementById("fs").addEventListener("click",function(){
+  if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+  else if(document.exitFullscreen) document.exitFullscreen();
+});
+document.getElementById("sound").addEventListener("click",function(e){
+  soundOn = !soundOn;
+  e.target.textContent = "Sound: " + (soundOn?"on":"off");
+});
+document.getElementById("newcode").addEventListener("click",function(){
+  Sync.newCode();
+});
+
+render();
+Sync.init({ role:"board", onState:applyRemote, onStatus:setStatus });
+})();
+</script>
+</body>
+</html>
