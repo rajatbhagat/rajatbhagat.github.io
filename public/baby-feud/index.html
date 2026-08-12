@@ -247,9 +247,13 @@ document.addEventListener("keydown", unlockAudio);
 /* ===================== HELPERS ===================== */
 function curQ(){ return QUESTIONS[S.qi]; }
 function curRev(){ return S.revealed[S.qi]; }
+/* Only answers turned up since the last award; paid-out ones stay on the
+   board but stop counting. */
 function pot(){
-  if(S.awarded[S.qi]) return 0;   // banked to a team already
-  return curQ().a.reduce(function(sum,ans,i){ return sum + (curRev()[i] ? ans[1] : 0); }, 0) * S.mult;
+  var rev = curRev(), bank = S.banked[S.qi];
+  return curQ().a.reduce(function(sum,ans,i){
+    return sum + (rev[i] && !bank[i] ? ans[1] : 0);
+  }, 0) * S.mult;
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -272,9 +276,9 @@ function render(){
     [0,1,2].map(function(i){ return '<div class="x '+(S.strikes>i?"on":"")+'">✕</div>'; }).join("");
 
   document.getElementById("pot").textContent = pot();
-  /* A pot of zero with answers still showing would look broken, so say why. */
-  var won = S.awarded[S.qi];
-  document.getElementById("multLabel").textContent = won ? "Won by "+S.names[won] : "×"+S.mult;
+  /* A zero pot under a full board would look broken, so name the reason. */
+  var done = rev.every(function(v){ return v; }) && pot() === 0;
+  document.getElementById("multLabel").textContent = done ? "Round complete" : "×"+S.mult;
   document.getElementById("scoreA").textContent = S.scores.A;
   document.getElementById("scoreB").textContent = S.scores.B;
   document.getElementById("nameA").textContent = S.names.A;

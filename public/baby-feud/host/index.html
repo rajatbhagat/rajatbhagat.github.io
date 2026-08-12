@@ -69,11 +69,15 @@ button:disabled{opacity:.4}
 .arow{display:flex;align-items:center;gap:11px;background:#1b1330;border:1px solid rgba(255,255,255,.09);
   border-radius:11px;padding:14px 12px;text-align:left;width:100%;font-size:16px}
 .arow.rev{background:#14382f;border-color:var(--mint)}
+/* Already paid out: still on the board, but no longer part of the pot. */
+.arow.paid{background:#191430;border-color:rgba(255,255,255,.09);opacity:.55}
 .arow .n{font-family:var(--display);font-weight:700;color:var(--dim);width:15px;flex:none}
 .arow .t{flex:1;font-weight:600}
 .arow.rev .t{text-decoration:line-through;opacity:.6}
 .arow .p{font-family:var(--display);font-weight:700;color:var(--marigold);font-size:18px}
+.arow.paid .p{color:var(--dim)}
 .arow .tick{font-size:14px;color:var(--mint);width:15px;text-align:center;flex:none}
+.arow.paid .tick{color:var(--dim);font-weight:700}
 
 /* ---------- inputs ---------- */
 input[type=text],input[type=number]{font-family:var(--body);font-size:16px;padding:12px;border-radius:11px;
@@ -138,12 +142,16 @@ var S = BF.loadState();
 
 function curQ(){ return QUESTIONS[S.qi]; }
 function curRev(){ return S.revealed[S.qi]; }
-/* Zero once the round has been banked, so a second tap on Award cannot pay
-   the same points out again. */
+/* Only what the team in control has turned up since the last award. Already
+   paid-out answers stay on the board but no longer count. */
+function curBank(){ return S.banked[S.qi]; }
 function pot(){
-  if(S.awarded[S.qi]) return 0;
-  return curQ().a.reduce(function(sum,ans,i){ return sum + (curRev()[i] ? ans[1] : 0); }, 0) * S.mult;
+  var rev = curRev(), bank = curBank();
+  return curQ().a.reduce(function(sum,ans,i){
+    return sum + (rev[i] && !bank[i] ? ans[1] : 0);
+  }, 0) * S.mult;
 }
+function roundDone(){ return curRev().every(function(v){ return v; }) && pot() === 0; }
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -179,7 +187,7 @@ function matchGuess(g){
 
 /* ===================== RENDER ===================== */
 function panelHTML(){
-  var q=curQ(), rev=curRev(), won=S.awarded[S.qi];
+  var q=curQ(), rev=curRev(), bank=curBank(), p=pot(), done=roundDone();
   return ''+
   '<div class="hsec">'+
     '<h3>Round '+(S.qi+1)+' of '+QUESTIONS.length+'</h3>'+
@@ -194,11 +202,12 @@ function panelHTML(){
     '<h3>Answers — tap to reveal</h3>'+
     '<div class="alist">'+
       q.a.map(function(a,i){
-        return '<button class="arow '+(rev[i]?"rev":"")+'" data-act="reveal" data-i="'+i+'">'+
+        var paid = rev[i] && bank[i];
+        return '<button class="arow '+(rev[i]?"rev":"")+(paid?" paid":"")+'" data-act="reveal" data-i="'+i+'">'+
           '<span class="n">'+(i+1)+'</span>'+
           '<span class="t">'+esc(a[0])+'</span>'+
           '<span class="p">'+a[1]+'</span>'+
-          '<span class="tick">'+(rev[i]?"✓":"")+'</span></button>';
+          '<span class="tick">'+(paid?"$":rev[i]?"✓":"")+'</span></button>';
       }).join("")+
     '</div>'+
     '<div class="hgrid" style="margin-top:10px">'+
@@ -227,11 +236,15 @@ function panelHTML(){
   '</div>'+
 
   '<div class="hsec">'+
-    '<h3>Pot — '+(won ? 'banked' : pot()+' points')+'</h3>'+
-    (won ? '<p class="tiny" style="margin:0 0 10px;color:var(--mint)"><strong>This round went to '+esc(S.names[won])+'.</strong> “Hide all” above reopens it if that was the wrong team.</p>' : '')+
+    '<h3>Pot — '+p+' points</h3>'+
+    (done
+      ? '<p class="tiny" style="margin:0 0 10px;color:var(--mint)"><strong>Round complete.</strong> Every answer is up and paid out — move to the next round.</p>'
+      : p===0
+        ? '<p class="tiny" style="margin:0 0 10px">Nothing to award yet. Reveal what '+esc(S.control ? S.names[S.control] : "the team in control")+' guesses, then bank it.</p>'
+        : '<p class="tiny" style="margin:0 0 10px">Banks '+p+' and passes control to the other team.</p>')+
     '<div class="hgrid">'+
-      '<button class="primary" data-act="awardA"'+(won?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
-      '<button class="primary" data-act="awardB"'+(won?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
+      '<button class="primary" data-act="awardA"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.A)+'</button>'+
+      '<button class="primary" data-act="awardB"'+(p<=0?" disabled":"")+'>Award to '+esc(S.names.B)+'</button>'+
     '</div>'+
     '<div class="hgrid3" style="margin-top:8px">'+
       [1,2,3].map(function(m){
@@ -327,16 +340,19 @@ document.addEventListener("click", function(e){
   else if(act==="revealAll"){ curRev().forEach(function(_,i){ curRev()[i] = true; }); }
   else if(act==="resetRound"){
     S.revealed[S.qi] = curQ().a.map(function(){ return false; });
+    S.banked[S.qi] = curQ().a.map(function(){ return false; });
     S.strikes = 0;
-    S.awarded[S.qi] = null;                      // reopens a round banked to the wrong team
   }
   else if(act==="strike"){ if(S.strikes<3) S.strikes++; }
   else if(act==="clearStrikes"){ S.strikes = 0; }
   else if(act==="awardA" || act==="awardB"){
-    if(S.awarded[S.qi]) return;                  // already banked, ignore the stray tap
+    var p = pot();
+    if(p <= 0) return;                           // nothing new on the board to pay out
     var team = act==="awardA" ? "A" : "B";
-    S.scores[team] += pot();                     // read before marking, or it reads zero
-    S.awarded[S.qi] = team;
+    S.scores[team] += p;
+    curRev().forEach(function(up,i){ if(up) curBank()[i] = true; });
+    S.control = team === "A" ? "B" : "A";        // the other team plays on
+    S.strikes = 0;                               // and starts its turn with a clean slate
   }
   else if(act==="prev"){ S.qi = Math.max(0,S.qi-1); S.strikes = 0; }
   else if(act==="next"){ S.qi = Math.min(QUESTIONS.length-1,S.qi+1); S.strikes = 0; }
