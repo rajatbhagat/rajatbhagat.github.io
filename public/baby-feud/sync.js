@@ -32,7 +32,9 @@ function newState(){
   return {
     qi:0,
     revealed: QUESTIONS.map(function(q){ return q.a.map(function(){ return false; }); }),
-    strikes:0,
+    /* Bumped to flash the giant ✕ on the board. The sync carries state, not
+       events, so the board watches this number for an increase. */
+    buzz:0,
     mult:1,
     control:null,            // 'A' | 'B' | null
     scores:{A:0,B:0},
@@ -58,7 +60,7 @@ function sanitize(raw){
       return q.a.map(function(_,ai){ return Array.isArray(row) ? !!row[ai] : false; });
     });
   }
-  if(typeof raw.strikes === "number") s.strikes = Math.max(0, Math.min(3, Math.floor(raw.strikes)));
+  if(typeof raw.buzz === "number" && isFinite(raw.buzz) && raw.buzz >= 0) s.buzz = Math.floor(raw.buzz);
   if(raw.mult === 1 || raw.mult === 2 || raw.mult === 3) s.mult = raw.mult;
   if(raw.control === "A" || raw.control === "B") s.control = raw.control;
   if(raw.scores){
