@@ -37,9 +37,10 @@ function newState(){
     control:null,            // 'A' | 'B' | null
     scores:{A:0,B:0},
     names:{A:"Team Mama",B:"Team Papa"},
-    /* Which team banked each round, or null. Once a round is banked its pot
-       reads zero, so the same points cannot be awarded twice. */
-    awarded: QUESTIONS.map(function(){ return null; })
+    /* Which answers have already been paid out. Control passes back and forth
+       inside a round, so a round can be awarded several times — the pot counts
+       only the answers revealed since the last award. */
+    banked: QUESTIONS.map(function(q){ return q.a.map(function(){ return false; }); })
   };
 }
 
@@ -68,10 +69,10 @@ function sanitize(raw){
     if(typeof raw.names.A === "string" && raw.names.A.trim()) s.names.A = raw.names.A.slice(0,24);
     if(typeof raw.names.B === "string" && raw.names.B.trim()) s.names.B = raw.names.B.slice(0,24);
   }
-  if(Array.isArray(raw.awarded)){
-    s.awarded = QUESTIONS.map(function(_,qi){
-      var v = raw.awarded[qi];
-      return (v === "A" || v === "B") ? v : null;
+  if(Array.isArray(raw.banked)){
+    s.banked = QUESTIONS.map(function(q,qi){
+      var row = raw.banked[qi];
+      return q.a.map(function(_,ai){ return Array.isArray(row) ? !!row[ai] : false; });
     });
   }
   return s;
