@@ -30,6 +30,9 @@ function randomCode(){
 
 function newState(){
   return {
+    /* "home" is the title screen where the teams get named; "playing" is the
+       board. A reset drops back to home. */
+    phase:"home",
     qi:0,
     revealed: QUESTIONS.map(function(q){ return q.a.map(function(){ return false; }); }),
     /* Bumped to flash the giant ✕ on the board. The sync carries state, not
@@ -60,6 +63,7 @@ function sanitize(raw){
       return q.a.map(function(_,ai){ return Array.isArray(row) ? !!row[ai] : false; });
     });
   }
+  if(raw.phase === "playing") s.phase = "playing";
   if(typeof raw.buzz === "number" && isFinite(raw.buzz) && raw.buzz >= 0) s.buzz = Math.floor(raw.buzz);
   if(raw.mult === 1 || raw.mult === 2 || raw.mult === 3) s.mult = raw.mult;
   if(raw.control === "A" || raw.control === "B") s.control = raw.control;

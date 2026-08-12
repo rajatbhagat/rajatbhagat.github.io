@@ -98,6 +98,25 @@ body{
 .pot .pval{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05}
 .pot .mult{font-size:12px;font-weight:700;opacity:.8}
 
+/* ---------- home screen ---------- */
+.homescreen{
+  background:linear-gradient(180deg,var(--plum-2),#241a3d);
+  border:2px solid rgba(255,194,71,.35);border-radius:22px;
+  padding:clamp(26px,5vw,48px) 24px;text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.35);
+}
+.homescreen .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--marigold);font-weight:700;display:block}
+.vs{display:flex;align-items:center;justify-content:center;gap:clamp(14px,3vw,32px);
+  flex-wrap:wrap;margin:clamp(16px,3vw,28px) 0}
+.vsname{font-family:var(--display);font-weight:700;font-size:clamp(24px,4.6vw,46px);
+  line-height:1.1;color:var(--cream)}
+.vssep{font-family:var(--display);font-weight:700;font-size:clamp(15px,2.2vw,24px);color:var(--mint)}
+.bigstart{font-family:var(--display);font-weight:700;font-size:clamp(17px,2.2vw,22px);
+  background:var(--marigold);color:#3a2a06;border-color:#f0a92c;padding:14px 34px;border-radius:14px}
+.bigstart:hover{background:#ffd071;border-color:#f0a92c}
+.hometip{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.6}
+
 /* ---------- wrong answer ---------- */
 #bigx{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:60}
 #bigx.show{display:flex;animation:pop .7s ease forwards}
@@ -152,6 +171,18 @@ button.ghost{background:transparent}
     <div class="qcount" id="qcount"></div>
   </div>
 
+  <div class="homescreen" id="home">
+    <span class="eyebrow">Get ready</span>
+    <div class="vs">
+      <span class="vsname" id="homeA">Team Mama</span>
+      <span class="vssep">vs</span>
+      <span class="vsname" id="homeB">Team Papa</span>
+    </div>
+    <button class="bigstart" id="start">Start game →</button>
+    <p class="hometip" id="hometip"></p>
+  </div>
+
+  <div id="game">
   <div class="question">
     <span class="eyebrow" id="qnum">Round 1</span>
     <p id="qtext"></p>
@@ -175,6 +206,7 @@ button.ghost{background:transparent}
       <div class="tname" id="nameB">Team Papa</div>
       <div class="tscore" id="scoreB">0</div>
     </div>
+  </div>
   </div>
 
   <div class="pair" id="pair">
@@ -254,9 +286,21 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
 /* ===================== RENDER ===================== */
+var ROUND_VALUE = QUESTIONS[0].a.reduce(function(sum,ans){ return sum + ans[1]; }, 0);
+
 function render(){
+  var home = S.phase === "home";
+  document.getElementById("home").style.display = home ? "" : "none";
+  document.getElementById("game").style.display = home ? "none" : "";
+  document.getElementById("homeA").textContent = S.names.A;
+  document.getElementById("homeB").textContent = S.names.B;
+  document.getElementById("hometip").textContent =
+    QUESTIONS.length+" rounds · "+ROUND_VALUE+" points a round · the teams are named from the host panel";
+
   var q=curQ(), rev=curRev();
-  document.getElementById("qcount").textContent = "Round "+(S.qi+1)+" of "+QUESTIONS.length;
+  document.getElementById("qcount").textContent = home
+    ? QUESTIONS.length+" rounds"
+    : "Round "+(S.qi+1)+" of "+QUESTIONS.length;
   document.getElementById("qnum").textContent = "Question "+(S.qi+1);
   document.getElementById("qtext").textContent = q.q;
 
@@ -326,7 +370,15 @@ function goto(i){
   pushLocal();
 }
 
+function startGame(){ S.phase = "playing"; pushLocal(); }
+
 document.addEventListener("keydown",function(e){
+  /* Nothing on the title screen but starting; the reveal keys would otherwise
+     act on a board nobody can see. */
+  if(S.phase === "home"){
+    if(e.key==="Enter" || e.key===" "){ e.preventDefault(); startGame(); }
+    return;
+  }
   if(e.key>="1" && e.key<="6") reveal(+e.key-1);
   else if(e.key==="x" || e.key==="X") wrongAnswer();
   else if(e.key==="ArrowRight") goto(S.qi+1);
@@ -373,6 +425,7 @@ document.getElementById("sound").addEventListener("click",function(e){
 document.getElementById("newcode").addEventListener("click",function(){
   Sync.newCode();
 });
+document.getElementById("start").addEventListener("click", startGame);
 
 render();
 Sync.init({ role:"board", onState:applyRemote, onStatus:setStatus });

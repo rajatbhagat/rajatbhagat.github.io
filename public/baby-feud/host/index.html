@@ -60,8 +60,10 @@ button:active{transform:scale(.98)}
 button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 button.primary{background:var(--marigold);color:#3a2a06;border-color:#f0a92c}
 button.danger{background:var(--coral);color:#fff;border-color:#ff9d93}
-/* Hit constantly through a round, so it gets a thumb-sized target. */
-button.bigx{width:100%;font-family:var(--display);font-weight:700;font-size:18px;padding:19px 14px}
+/* The two one-tap actions — start, and calling a wrong guess — get a
+   thumb-sized target. */
+button.big{width:100%;font-family:var(--display);font-weight:700;font-size:18px;padding:19px 14px}
+.namestack{display:flex;flex-direction:column;gap:8px}
 button:disabled{opacity:.4}
 .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -146,6 +148,7 @@ function curQ(){ return QUESTIONS[S.qi]; }
 function curRev(){ return S.revealed[S.qi]; }
 /* Only what the team in control has turned up since the last award. Already
    paid-out answers stay on the board but no longer count. */
+var ROUND_VALUE = QUESTIONS[0].a.reduce(function(sum,ans){ return sum + ans[1]; }, 0);
 function curBank(){ return S.banked[S.qi]; }
 function pot(){
   var rev = curRev(), bank = curBank();
@@ -188,7 +191,27 @@ function matchGuess(g){
 }
 
 /* ===================== RENDER ===================== */
+/* Title screen: name the teams as they tell you, then start. */
+function homeHTML(){
+  return ''+
+  '<div class="hsec">'+
+    '<h3>Team names</h3>'+
+    '<div class="namestack">'+
+      '<input type="text" data-act="nameA" value="'+esc(S.names.A)+'" maxlength="24" aria-label="Team 1 name">'+
+      '<input type="text" data-act="nameB" value="'+esc(S.names.B)+'" maxlength="24" aria-label="Team 2 name">'+
+    '</div>'+
+    '<p class="tiny" style="margin:10px 0 0">These show on the big screen as you type.</p>'+
+  '</div>'+
+
+  '<div class="hsec">'+
+    '<h3>Ready?</h3>'+
+    '<button class="primary big" data-act="start">Start game</button>'+
+    '<p class="tiny" style="margin:10px 0 0">'+QUESTIONS.length+' rounds, '+ROUND_VALUE+' points a round. The answers appear here once you start.</p>'+
+  '</div>';
+}
+
 function panelHTML(){
+  if(S.phase === "home") return homeHTML();
   var q=curQ(), rev=curRev(), bank=curBank(), p=pot(), done=roundDone();
   return ''+
   '<div class="hsec">'+
@@ -220,7 +243,7 @@ function panelHTML(){
 
   '<div class="hsec">'+
     '<h3>Wrong answer</h3>'+
-    '<button class="danger bigx" data-act="buzz">WRONG GUESS</button>'+
+    '<button class="danger big" data-act="buzz">WRONG GUESS</button>'+
   '</div>'+
 
   '<div class="hsec">'+
@@ -279,7 +302,9 @@ function panelHTML(){
   '</div>'+
 
   '<div class="hsec">'+
-    '<h3>Danger zone</h3>'+
+    '<h3>Game</h3>'+
+    '<button data-act="home" style="width:100%">Back to the title screen</button>'+
+    '<p class="tiny" style="margin:9px 0 12px">Scores and revealed answers are kept.</p>'+
     '<button class="danger" data-act="resetGame" style="width:100%">Reset the whole game</button>'+
   '</div>';
 }
@@ -341,6 +366,8 @@ document.addEventListener("click", function(e){
     S.banked[S.qi] = curQ().a.map(function(){ return false; });
   }
   else if(act==="buzz"){ S.buzz++; }
+  else if(act==="start"){ S.phase = "playing"; }
+  else if(act==="home"){ S.phase = "home"; }
   else if(act==="awardA" || act==="awardB"){
     if(roundDone()) return;                      // every answer is up and paid for
     var team = act==="awardA" ? "A" : "B";
