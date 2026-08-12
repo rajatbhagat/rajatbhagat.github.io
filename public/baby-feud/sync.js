@@ -36,7 +36,10 @@ function newState(){
     mult:1,
     control:null,            // 'A' | 'B' | null
     scores:{A:0,B:0},
-    names:{A:"Team Mama",B:"Team Papa"}
+    names:{A:"Team Mama",B:"Team Papa"},
+    /* Which team banked each round, or null. Once a round is banked its pot
+       reads zero, so the same points cannot be awarded twice. */
+    awarded: QUESTIONS.map(function(){ return null; })
   };
 }
 
@@ -64,6 +67,12 @@ function sanitize(raw){
   if(raw.names){
     if(typeof raw.names.A === "string" && raw.names.A.trim()) s.names.A = raw.names.A.slice(0,24);
     if(typeof raw.names.B === "string" && raw.names.B.trim()) s.names.B = raw.names.B.slice(0,24);
+  }
+  if(Array.isArray(raw.awarded)){
+    s.awarded = QUESTIONS.map(function(_,qi){
+      var v = raw.awarded[qi];
+      return (v === "A" || v === "B") ? v : null;
+    });
   }
   return s;
 }
