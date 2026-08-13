@@ -43,12 +43,14 @@ const games = [
           </p>
           <p class="note muted">{game.note}</p>
           <p class="requirement"><strong>Before you start:</strong> {game.requirement}</p>
+          {/* New tabs: the two links are opened on different devices minutes
+              apart, so losing this page in between is a needless round trip. */}
           <p class="links">
-            <a class="btn" href={game.play.url}>
-              {game.play.label}
+            <a class="btn" href={game.play.url} target="_blank" rel="noopener">
+              {game.play.label} ↗
             </a>
-            <a class="secondary" href={game.host.url}>
-              {game.host.label}
+            <a class="secondary" href={game.host.url} target="_blank" rel="noopener">
+              {game.host.label} ↗
             </a>
           </p>
         </article>
