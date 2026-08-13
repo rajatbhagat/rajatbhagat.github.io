@@ -63,6 +63,9 @@ button.danger{background:var(--coral);color:#fff;border-color:#ff9d93}
 /* The two one-tap actions — start, and calling a wrong guess — get a
    thumb-sized target. */
 button.big{width:100%;font-family:var(--display);font-weight:700;font-size:18px;padding:19px 14px}
+.undobtn{width:100%;margin-top:9px;padding:10px;font-size:14px;background:#1b1330;
+  border-color:rgba(255,194,71,.5);color:var(--marigold)}
+.undobtn[hidden]{display:none}
 .namestack{display:flex;flex-direction:column;gap:8px}
 button:disabled{opacity:.4}
 .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -102,7 +105,13 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
   border-radius:12px;padding:11px 12px;font-size:13px;margin-bottom:12px;line-height:1.5}
 .qjump{max-height:190px;overflow:auto;display:flex;flex-direction:column;gap:5px;-webkit-overflow-scrolling:touch}
 .qjump button{text-align:left;font-size:14px;padding:11px 10px;font-weight:500}
-.qjump button.cur{background:var(--marigold);color:#3a2a06}
+.qjump button{display:flex;gap:7px;align-items:baseline}
+.qjump button.done{opacity:.45}
+.qjump button.done .rmark{color:var(--mint)}
+.qjump button.part .rmark{color:var(--marigold)}
+.rmark{width:13px;flex:none;font-size:12px}
+.qjump button.cur{background:var(--marigold);color:#3a2a06;opacity:1}
+.qjump button.cur .rmark{color:#3a2a06}
 .legal{margin:20px 0 0;text-align:center;font-size:12px;color:var(--dim);line-height:1.7}
 .legal a{color:var(--cream);text-decoration:none;border-bottom:1px solid rgba(253,246,231,.3)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -115,6 +124,8 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
       <div class="brand">Host panel</div>
       <div class="status" id="status"><span class="dot"></span><span id="statusText">Not connected</span></div>
     </div>
+    <!-- In the sticky header so a mis-tap can be undone without scrolling back. -->
+    <button id="undoBtn" data-act="undo" class="undobtn" hidden>Undo</button>
   </div>
 
   <div class="hsec" id="pairbox">
@@ -170,8 +181,45 @@ function pot(){
   }, 0) * S.mult;
 }
 function roundDone(){ return curRev().every(function(v){ return v; }) && pot() === 0; }
+
+/* "done"    every answer up and paid for — do not pick it again
+   "part"    started but unfinished
+   "new"     untouched */
+function roundState(i){
+  var rev = S.revealed[i], bank = S.banked[i];
+  if(rev.every(function(v){ return v; }) && bank.every(function(v){ return v; })) return "done";
+  return rev.some(function(v){ return v; }) ? "part" : "new";
+}
+function unplayedRounds(){
+  var out = [];
+  QUESTIONS.forEach(function(_,i){ if(roundState(i) === "new") out.push(i); });
+  return out;
+}
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+/* One level of undo. Awarding to the wrong team is the mis-tap that actually
+   hurts — the points are banked and control has already passed — and putting
+   that right by hand means Hide all, then editing a score, on a phone, with
+   the room watching. */
+var _undo = null;
+var UNDO_LABELS = {
+  reveal:"reveal", revealAll:"reveal all", resetRound:"hide all", buzz:"wrong guess",
+  awardA:"award", awardB:"award", prev:"round change", next:"round change",
+  goto:"round change", random:"round change", mult:"multiplier",
+  ctrlA:"control", ctrlB:"control", resetGame:"reset", start:"start",
+  home:"title screen", demo:"example round", finish:"finish", resume:"resume",
+  check:"guess"
+};
+function snapshot(act){
+  _undo = { state: JSON.parse(JSON.stringify(S)), label: UNDO_LABELS[act] || "last change" };
+}
+function renderUndo(){
+  var btn = document.getElementById("undoBtn");
+  if(!btn) return;
+  btn.hidden = !_undo;
+  if(_undo) btn.textContent = "Undo " + _undo.label;
+}
 
 /* Push to the screen and persist on every change — there is no explicit save. */
 function commit(){
@@ -271,10 +319,31 @@ function demoHTML(){
   '</div>';
 }
 
+/* Final score. Keeps a way back, because "finish" gets tapped early. */
+function overHTML(){
+  var a=S.scores.A, b=S.scores.B;
+  var line = a===b ? "It's a tie — "+esc(S.names.A)+" and "+esc(S.names.B)+" both on "+a+"."
+                   : esc(a>b ? S.names.A : S.names.B)+" wins, "+Math.max(a,b)+" to "+Math.min(a,b)+".";
+  return ''+
+  '<div class="hsec">'+
+    '<h3>Final score</h3>'+
+    '<p class="hq">'+line+'</p>'+
+    '<p class="tiny" style="margin:8px 0 0">It is on the big screen now.</p>'+
+  '</div>'+
+  '<div class="hsec">'+
+    '<h3>What next?</h3>'+
+    '<button data-act="resume" style="width:100%">Back to the board</button>'+
+    '<p class="tiny" style="margin:9px 0 12px">If you finished by accident, or there are rounds left to play.</p>'+
+    '<button class="danger" data-act="resetGame" style="width:100%">New game</button>'+
+    '<p class="tiny" style="margin:9px 0 0">Clears the scores and every revealed answer.</p>'+
+  '</div>';
+}
+
 function panelHTML(){
   if(S.phase === "home") return homeHTML();
   if(S.phase === "demo") return demoHTML();
-  var q=curQ(), rev=curRev(), bank=curBank(), p=pot(), done=roundDone();
+  if(S.phase === "over") return overHTML();
+  var q=curQ(), rev=curRev(), bank=curBank(), p=pot(), done=roundDone(), left=unplayedRounds();
   return ''+
   '<div class="hsec">'+
     '<h3>Round '+(S.qi+1)+' of '+QUESTIONS.length+'</h3>'+
@@ -354,17 +423,25 @@ function panelHTML(){
   '</div>'+
 
   '<div class="hsec">'+
-    '<h3>Jump to a round</h3>'+
+    '<h3>Rounds — '+left.length+' of '+QUESTIONS.length+' not yet played</h3>'+
+    '<button data-act="random"'+(left.length?"":" disabled")+' style="width:100%;margin-bottom:10px">'+
+      (left.length ? "Pick a random unplayed round" : "Every round has been played")+'</button>'+
     '<div class="qjump">'+
       QUESTIONS.map(function(qq,i){
-        return '<button data-act="goto" data-i="'+i+'"'+(i===S.qi?' class="cur"':'')+'>'+
-          (i+1)+'. '+esc(qq.q.slice(0,44))+(qq.q.length>44?"…":"")+'</button>';
+        var st = roundState(i);
+        var mark = st==="done" ? "✓" : st==="part" ? "◐" : "";
+        return '<button data-act="goto" data-i="'+i+'" class="'+st+(i===S.qi?" cur":"")+'">'+
+          '<span class="rmark">'+mark+'</span>'+
+          (i+1)+'. '+esc(qq.q.slice(0,40))+(qq.q.length>40?"…":"")+'</button>';
       }).join("")+
     '</div>'+
+    '<p class="tiny" style="margin:9px 0 0">✓ finished · ◐ started · unmarked is untouched.</p>'+
   '</div>'+
 
   '<div class="hsec">'+
     '<h3>Game</h3>'+
+    '<button class="primary big" data-act="finish">Finish — show the winner</button>'+
+    '<p class="tiny" style="margin:9px 0 12px">Puts the final score on the big screen. You can come back if you stopped early.</p>'+
     '<button data-act="home" style="width:100%">Back to the title screen</button>'+
     '<p class="tiny" style="margin:9px 0 12px">Scores and revealed answers are kept.</p>'+
     '<button class="danger" data-act="resetGame" style="width:100%">Reset the whole game</button>'+
@@ -388,6 +465,7 @@ function render(){
   var guessVal = guess ? guess.value : "";
 
   panel.innerHTML = panelHTML();
+  renderUndo();
 
   var g2 = document.getElementById("guess");
   if(g2) g2.value = guessVal;
@@ -418,6 +496,16 @@ document.addEventListener("click", function(e){
     Sync.connect(document.getElementById("code").value);
     return;
   }
+  if(act==="undo"){
+    if(!_undo) return;
+    S = _undo.state;
+    _undo = null;
+    commit();
+    return;
+  }
+  /* Taken before the action runs, so undo restores what was on screen. Only
+     for acts that change something, or a stray tap would offer a hollow undo. */
+  if(UNDO_LABELS[act]) snapshot(act);
   if(act==="reveal"){
     var i = +el.dataset.i;
     curRev()[i] = !curRev()[i];
@@ -434,6 +522,13 @@ document.addEventListener("click", function(e){
   else if(act==="buzz"){ S.buzz++; }
   else if(act==="start"){ S.phase = "playing"; }
   else if(act==="home"){ S.phase = "home"; }
+  else if(act==="finish"){ S.phase = "over"; }
+  else if(act==="resume"){ S.phase = "playing"; }
+  else if(act==="random"){
+    var left = unplayedRounds();
+    if(!left.length) return;
+    S.qi = left[Math.floor(Math.random()*left.length)];
+  }
   else if(act==="demo"){
     S.phase = "demo";
     S.demoRevealed = DEMO.a.map(function(){ return false; });   // always start clean

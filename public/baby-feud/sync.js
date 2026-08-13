@@ -34,8 +34,8 @@ function randomCode(){
 function newState(){
   return {
     /* "home" is the title screen where the teams get named, "demo" the
-       example round used to explain the rules, "playing" the real board.
-       A reset drops back to home. */
+       example round used to explain the rules, "playing" the real board,
+       "over" the final score. A reset drops back to home. */
     phase:"home",
     demoRevealed: DEMO.a.map(function(){ return false; }),
     qi:0,
@@ -68,7 +68,7 @@ function sanitize(raw){
       return q.a.map(function(_,ai){ return Array.isArray(row) ? !!row[ai] : false; });
     });
   }
-  if(raw.phase === "playing" || raw.phase === "demo") s.phase = raw.phase;
+  if(raw.phase === "playing" || raw.phase === "demo" || raw.phase === "over") s.phase = raw.phase;
   if(Array.isArray(raw.demoRevealed)){
     s.demoRevealed = DEMO.a.map(function(_,i){ return !!raw.demoRevealed[i]; });
   }

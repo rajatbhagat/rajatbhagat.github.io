@@ -116,6 +116,17 @@ body{
   background:var(--marigold);color:#3a2a06;border-color:#f0a92c;padding:14px 34px;border-radius:14px}
 .bigstart:hover{background:#ffd071;border-color:#f0a92c}
 .hometip{font-size:13px;color:var(--dim);margin:18px 0 0;line-height:1.6}
+/* ---------- final score ---------- */
+.finalrow{display:flex;align-items:center;justify-content:center;gap:clamp(14px,4vw,44px);
+  flex-wrap:wrap;margin:clamp(16px,3vw,28px) 0}
+.finalteam{min-width:150px;opacity:.5;transition:opacity .3s}
+.finalteam.won{opacity:1}
+.fname{font-family:var(--display);font-weight:600;font-size:clamp(15px,2vw,22px);color:var(--dim)}
+.finalteam.won .fname{color:var(--cream)}
+.fscore{font-family:var(--display);font-weight:700;font-size:clamp(46px,10vw,104px);line-height:1;color:var(--cream)}
+.finalteam.won .fscore{color:var(--marigold);text-shadow:0 3px 0 #b8791a}
+.winner{font-family:var(--display);font-weight:700;font-size:clamp(21px,3.6vw,38px);
+  color:var(--marigold);margin:6px 0 0;line-height:1.25}
 .demobar{background:rgba(127,214,193,.14);border:1px solid rgba(127,214,193,.5);color:var(--mint);
   border-radius:12px;padding:9px 14px;margin-bottom:14px;text-align:center;
   font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
@@ -197,6 +208,22 @@ button.ghost{background:transparent}
     </div>
     <button class="bigstart" id="start">Start game →</button>
     <p class="hometip" id="hometip"></p>
+  </div>
+
+  <div class="homescreen" id="over">
+    <span class="eyebrow">Final score</span>
+    <div class="finalrow">
+      <div class="finalteam" id="finalA">
+        <div class="fname" id="overA">Team Mama</div>
+        <div class="fscore" id="overSA">0</div>
+      </div>
+      <span class="vssep">vs</span>
+      <div class="finalteam" id="finalB">
+        <div class="fname" id="overB">Team Papa</div>
+        <div class="fscore" id="overSB">0</div>
+      </div>
+    </div>
+    <p class="winner" id="winner"></p>
   </div>
 
   <div id="game">
@@ -295,6 +322,11 @@ function tone(freq,dur,type,vol){
 }
 function dingSound(){ tone(880,.18,"sine",.2); setTimeout(function(){ tone(1320,.28,"sine",.16); },90); }
 function buzzSound(){ tone(150,.45,"sawtooth",.16); }
+function fanfare(){
+  tone(660,.20,"sine",.18);
+  setTimeout(function(){ tone(880,.20,"sine",.18); },170);
+  setTimeout(function(){ tone(1320,.55,"sine",.20); },350);
+}
 document.addEventListener("click", unlockAudio);
 document.addEventListener("keydown", unlockAudio);
 
@@ -319,10 +351,24 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
 var ROUND_VALUE = QUESTIONS[0].a.reduce(function(sum,ans){ return sum + ans[1]; }, 0);
 
 function render(){
-  var home = S.phase === "home", demo = S.phase === "demo";
+  var home = S.phase === "home", demo = S.phase === "demo", over = S.phase === "over";
   document.getElementById("home").style.display = home ? "" : "none";
-  document.getElementById("game").style.display = home ? "none" : "";
+  document.getElementById("over").style.display = over ? "" : "none";
+  document.getElementById("game").style.display = (home || over) ? "none" : "";
   document.getElementById("demobar").style.display = demo ? "" : "none";
+
+  if(over){
+    var a = S.scores.A, b = S.scores.B;
+    document.getElementById("overA").textContent = S.names.A;
+    document.getElementById("overB").textContent = S.names.B;
+    document.getElementById("overSA").textContent = a;
+    document.getElementById("overSB").textContent = b;
+    /* A draw lights both sides rather than neither — nobody lost. */
+    document.getElementById("finalA").classList.toggle("won", a >= b);
+    document.getElementById("finalB").classList.toggle("won", b >= a);
+    document.getElementById("winner").textContent =
+      a === b ? "It's a tie!" : (a > b ? S.names.A : S.names.B) + " wins!";
+  }
   /* No scores during the example round — there is nothing to score. */
   document.querySelector(".scorerow").style.display = demo ? "none" : "";
   document.getElementById("homeA").textContent = S.names.A;
@@ -333,6 +379,7 @@ function render(){
   var q=curQ(), rev=curRev();
   document.getElementById("qcount").textContent = home
     ? QUESTIONS.length+" rounds"
+    : over ? "Final score"
     : demo ? "Example" : "Round "+(S.qi+1)+" of "+QUESTIONS.length;
   document.getElementById("qnum").textContent = demo ? "Example" : "Question "+(S.qi+1);
   document.getElementById("qtext").textContent = q.q;
@@ -381,10 +428,12 @@ function applyRemote(next){
     return v && !S.revealed[S.qi][i];
   });
   var wrong = next.buzz > S.buzz;
+  var ended = next.phase === "over" && S.phase !== "over";
 
   S = next;
   render();
-  if(wrong){ buzzSound(); showBigX(); }
+  if(ended){ fanfare(); }
+  else if(wrong){ buzzSound(); showBigX(); }
   else if(newlyRevealed){ dingSound(); }
 }
 
