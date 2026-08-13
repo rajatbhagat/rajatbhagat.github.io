@@ -10,10 +10,12 @@ const games = [
     name: 'Baby Feud',
     blurb:
       'Family-Feud-style survey game for a baby shower. Fifteen rounds, two teams, flip-up answer board and a running scoreboard.',
-    tech: ['Two screens', 'WebRTC', 'No install'],
+    tech: ['Two screens', 'WebRTC', 'Same wifi', 'No install'],
     play: { label: 'Open the game screen', url: '/baby-feud/' },
     host: { label: 'Host panel', url: '/baby-feud/host/' },
     note: 'Put the game screen on the TV, open the host panel on your phone, and pair them with the 4-character room code. Answers stay on your phone; tapping one flips it on the big screen.',
+    requirement:
+      'Both devices must be on the same wifi. The phone talks to the screen directly rather than through a server, which is what keeps the answers private — but it also means a phone on mobile data usually cannot reach the screen at all.',
   },
 ];
 ---
@@ -40,6 +42,7 @@ const games = [
             ))}
           </p>
           <p class="note muted">{game.note}</p>
+          <p class="requirement"><strong>Before you start:</strong> {game.requirement}</p>
           <p class="links">
             <a class="btn" href={game.play.url}>
               {game.play.label}
@@ -89,12 +92,22 @@ const games = [
   }
 
   .note {
-    flex: 1;
-    margin: 0 0 1rem;
+    margin: 0 0 0.75rem;
     font-size: 0.85rem;
     line-height: 1.6;
     border-left: 2px solid var(--border);
     padding-left: 0.75rem;
+  }
+
+  /* Load-bearing: pairing simply fails if the two devices are not together. */
+  .requirement {
+    flex: 1;
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+    padding-left: 0.75rem;
+    color: var(--text);
   }
 
   .links {

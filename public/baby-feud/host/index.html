@@ -103,6 +103,8 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
 .qjump{max-height:190px;overflow:auto;display:flex;flex-direction:column;gap:5px;-webkit-overflow-scrolling:touch}
 .qjump button{text-align:left;font-size:14px;padding:11px 10px;font-weight:500}
 .qjump button.cur{background:var(--marigold);color:#3a2a06}
+.legal{margin:20px 0 0;text-align:center;font-size:12px;color:var(--dim);line-height:1.7}
+.legal a{color:var(--cream);text-decoration:none;border-bottom:1px solid rgba(253,246,231,.3)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -123,10 +125,17 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
              aria-label="Room code from the big screen">
       <button class="primary" data-act="pair">Connect</button>
     </div>
-    <p class="tiny" style="margin:9px 0 0">Type the 4-character code showing on the game screen. Everything below works even without a connection — it is your answer key either way.</p>
+    <p class="tiny" style="margin:9px 0 0">Type the 4-character code showing on the game screen. <strong>This phone and the screen must be on the same wifi</strong> — mobile data will not reach it. Everything below works even without a connection, so it is your answer key either way.</p>
+    <p class="tiny" id="pairnote" style="margin:8px 0 0;color:var(--marigold)"></p>
   </div>
 
   <div id="panel"></div>
+
+  <p class="legal">
+    Baby Feud © 2026
+    <a href="https://rajatbhagat.github.io/" target="_blank" rel="noopener">Rajat Bhagat</a>
+    · All rights reserved
+  </p>
 </div>
 
 <script src="../questions.js"></script>
@@ -504,6 +513,8 @@ function setStatus(status, detail, code){
   var box = document.getElementById("status");
   var txt = document.getElementById("statusText");
   var pairbox = document.getElementById("pairbox");
+  var note = document.getElementById("pairnote");
+  if(note) note.textContent = (status === "connected") ? "" : (detail || "");
   box.className = "status";
   if(status === "connected"){
     box.classList.add("on");
@@ -532,12 +543,13 @@ Sync.init({
 
 render();
 
-/* Offer the last code used, or one handed over in the URL as /host/#ABCD. */
+/* Reuse the last code, or one handed over in the URL as /host/#ABCD, and dial
+   it straight away — reloading the phone mid-game should not need a re-tap. */
 var hashCode = (location.hash || "").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,4);
-var prefill = hashCode || BF.loadCode();
-if(prefill){
+var prefill = hashCode || BF.loadCode("host");
+if(prefill.length === 4){
   document.getElementById("code").value = prefill;
-  if(hashCode) Sync.connect(hashCode);
+  Sync.connect(prefill);
 }
 })();
 </script>
