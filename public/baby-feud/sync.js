@@ -20,7 +20,9 @@ var DEMO = window.BABY_FEUD_DEMO;
 /* Ambiguous glyphs left out so a code is never misread off a TV: no O/0, I/1, L. */
 var ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 var PEER_PREFIX = "babyfeud-";
-var CODE_KEY  = "babyfeud.code.v1";
+/* Separate keys: on one machine the board remembers the code it owns and the
+   host remembers the code it dialled, and they must not overwrite each other. */
+var CODE_KEY  = {board:"babyfeud.board.code.v1", host:"babyfeud.host.code.v1"};
 var STATE_KEY = "babyfeud.state.v1";
 
 function randomCode(){
@@ -99,12 +101,28 @@ function loadState(){
 function saveState(s){
   try{ localStorage.setItem(STATE_KEY, JSON.stringify(s)); }catch(e){}
 }
-function loadCode(){
-  try{ return localStorage.getItem(CODE_KEY) || ""; }catch(e){ return ""; }
+function loadCode(role){
+  try{ return localStorage.getItem(CODE_KEY[role||"board"]) || ""; }catch(e){ return ""; }
 }
-function saveCode(c){
-  try{ localStorage.setItem(CODE_KEY, c); }catch(e){}
+function saveCode(role, c){
+  try{ localStorage.setItem(CODE_KEY[role||"board"], c); }catch(e){}
 }
+
+/* STUN lets each device discover its own public address so the two can meet
+   directly. Several servers, because one being slow should not decide the game.
+
+   There is deliberately no TURN relay here. TURN is what covers the cases a
+   direct connection cannot reach — a phone on cellular, locked-down guest
+   wifi — but every free public TURN service checked was either dead or now
+   needs an account, and a dead relay in this list would look like a fix while
+   doing nothing at all. Both devices on the same wifi is the reliable setup,
+   and the pages now say so when a direct connection fails. */
+var ICE = { iceServers: [
+  { urls: ["stun:stun.l.google.com:19302",
+           "stun:stun1.l.google.com:19302",
+           "stun:stun2.l.google.com:19302",
+           "stun:stun.cloudflare.com:3478"] }
+]};
 
 var Sync = {
   role:null,          // 'board' | 'host'
@@ -117,6 +135,7 @@ var Sync = {
   onStatus:function(){},
   _retry:null,
   _wantCode:"",
+  _idTries:0,
 
   init:function(opts){
     this.role = opts.role;
@@ -126,7 +145,7 @@ var Sync = {
       this._set("error","Could not load the connection library.");
       return;
     }
-    if(this.role === "board") this._startBoard(loadCode() || randomCode());
+    if(this.role === "board") this._startBoard(loadCode("board") || randomCode());
   },
 
   _set:function(status, detail){
@@ -139,14 +158,14 @@ var Sync = {
   _startBoard:function(code){
     var self = this;
     this.code = code;
-    saveCode(code);
+    saveCode("board", code);
     this._set("starting","");
     this._destroyPeer();
 
-    var peer = new Peer(PEER_PREFIX + code, {debug:0});
+    var peer = new Peer(PEER_PREFIX + code, {debug:0, config:ICE});
     this.peer = peer;
 
-    peer.on("open", function(){ self._set("waiting",""); });
+    peer.on("open", function(){ self._idTries = 0; self._set("waiting",""); });
 
     peer.on("connection", function(conn){
       /* A host reloading its phone page dials in again; the newest one wins. */
@@ -158,8 +177,19 @@ var Sync = {
     peer.on("error", function(err){
       var t = err && err.type;
       if(t === "unavailable-id"){
-        /* Someone (probably a stale tab of ours) holds this code. Take a new one. */
-        saveCode("");
+        /* Nearly always our own previous session: the broker holds the id for
+           a few seconds after a reload. Rotating the code immediately used to
+           strand a phone that was still dialling the old one, so wait for the
+           id to come free and only rotate if it genuinely never does. */
+        if(self._idTries < 5){
+          self._idTries++;
+          self._set("starting","Reclaiming room code "+code+"…");
+          clearTimeout(self._retry);
+          self._retry = setTimeout(function(){ self._startBoard(code); }, 1500);
+          return;
+        }
+        self._idTries = 0;
+        saveCode("board", "");
         self._startBoard(randomCode());
         return;
       }
@@ -187,7 +217,7 @@ var Sync = {
     if(code.length !== 4){ this._set("error","A room code is 4 characters."); return; }
     this._wantCode = code;
     this.code = code;
-    saveCode(code);
+    saveCode("host", code);
     clearTimeout(this._retry);
     this._set("connecting","");
 
@@ -199,7 +229,7 @@ var Sync = {
       return;
     }
     this._destroyPeer();
-    var peer = new Peer({debug:0});
+    var peer = new Peer({debug:0, config:ICE});
     this.peer = peer;
     peer.on("open", function(){ self._dial(); });
     peer.on("error", function(err){
@@ -219,14 +249,39 @@ var Sync = {
     var self = this;
     if(!this.peer || this.peer.destroyed || !this._wantCode) return;
     if(this.conn && this.conn.open) return;
+    /* Abandon the half-open attempt before starting another, or each redial
+       leaves a live RTCPeerConnection behind gathering candidates. */
+    if(this.conn){ try{ this.conn.close(); }catch(e){} this.conn = null; }
+
     var conn = this.peer.connect(PEER_PREFIX + this._wantCode, {reliable:true});
     if(!conn){ this._scheduleRedial(); return; }
     this.conn = conn;
     this._wire(conn);
+    this._watchIce(conn);
     /* connect() stays silent when the far side is absent, so give up and redial. */
     setTimeout(function(){
       if(self.conn === conn && !conn.open) self._scheduleRedial();
     }, 6000);
+  },
+
+  /* Without this a failed pairing just says "connecting" forever. ICE is where
+     it actually fails, so report that plainly — the usual cause is the two
+     devices being on networks that cannot reach each other. */
+  _watchIce:function(conn){
+    var self = this, tries = 0;
+    (function attach(){
+      var pc = conn.peerConnection;
+      if(!pc){ if(tries++ < 10) setTimeout(attach, 300); return; }
+      pc.oniceconnectionstatechange = function(){
+        if(self.conn !== conn) return;
+        var st = pc.iceConnectionState;
+        if(st === "failed"){
+          self._set("error","Could not reach the screen directly. Put both devices on the same wifi.");
+        } else if(st === "checking" && !conn.open){
+          self._set("connecting","Finding a route to the screen…");
+        }
+      };
+    })();
   },
 
   _scheduleRedial:function(){
@@ -276,7 +331,8 @@ var Sync = {
   newCode:function(){
     if(this.role !== "board") return;
     if(this.conn){ try{ this.conn.close(); }catch(e){} this.conn = null; }
-    saveCode("");
+    this._idTries = 0;
+    saveCode("board", "");
     this._startBoard(randomCode());
   },
 

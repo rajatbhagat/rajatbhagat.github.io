@@ -124,6 +124,7 @@ input:focus-visible{outline:3px solid var(--mint);outline-offset:1px}
       <button class="primary" data-act="pair">Connect</button>
     </div>
     <p class="tiny" style="margin:9px 0 0">Type the 4-character code showing on the game screen. Everything below works even without a connection — it is your answer key either way.</p>
+    <p class="tiny" id="pairnote" style="margin:8px 0 0;color:var(--marigold)"></p>
   </div>
 
   <div id="panel"></div>
@@ -504,6 +505,8 @@ function setStatus(status, detail, code){
   var box = document.getElementById("status");
   var txt = document.getElementById("statusText");
   var pairbox = document.getElementById("pairbox");
+  var note = document.getElementById("pairnote");
+  if(note) note.textContent = (status === "connected") ? "" : (detail || "");
   box.className = "status";
   if(status === "connected"){
     box.classList.add("on");
@@ -532,12 +535,13 @@ Sync.init({
 
 render();
 
-/* Offer the last code used, or one handed over in the URL as /host/#ABCD. */
+/* Reuse the last code, or one handed over in the URL as /host/#ABCD, and dial
+   it straight away — reloading the phone mid-game should not need a re-tap. */
 var hashCode = (location.hash || "").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,4);
-var prefill = hashCode || BF.loadCode();
-if(prefill){
+var prefill = hashCode || BF.loadCode("host");
+if(prefill.length === 4){
   document.getElementById("code").value = prefill;
-  if(hashCode) Sync.connect(hashCode);
+  Sync.connect(prefill);
 }
 })();
 </script>

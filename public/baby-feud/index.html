@@ -151,6 +151,7 @@ body{
 .pair .steps b{color:var(--mint);font-family:var(--display)}
 .pair .url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;color:var(--cream);
   background:#1b1330;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:3px 8px;display:inline-block}
+.pairnote{margin:10px 0 0;font-size:13px;color:var(--marigold);min-height:18px}
 
 /* ---------- bottom bar ---------- */
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(15,10,30,.92);
@@ -229,6 +230,8 @@ button.ghost{background:transparent}
     <div class="steps">
       <p style="margin:0 0 8px"><b>1.</b> On your phone, open<br><span class="url" id="hostUrl">…/baby-feud/host/</span></p>
       <p style="margin:0"><b>2.</b> Type the room code. The answers appear on your phone and stay off this screen.</p>
+      <p style="margin:10px 0 0"><b>3.</b> Keep both devices on the same wifi — the phone talks to this screen directly.</p>
+      <p class="pairnote" id="pairnote"></p>
     </div>
   </div>
 </div>
@@ -418,6 +421,8 @@ function setStatus(status, detail, code){
   var txt = document.getElementById("statusText");
   var pair = document.getElementById("pair");
   document.getElementById("code").textContent = code || "····";
+  var note = document.getElementById("pairnote");
+  if(note) note.textContent = (status === "connected") ? "" : (detail || "");
 
   box.className = "status";
   if(status === "connected"){
