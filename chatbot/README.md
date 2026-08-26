@@ -1,9 +1,9 @@
 # Ask My Resume — chatbot Worker
 
-A Cloudflare Worker that answers questions about Rajat's experience using a
-free model via OpenRouter (`google/gemma-4-31b-it:free` by default, with the
-others in `src/models.ts` as automatic fallbacks), grounded in the same
-content files that render the portfolio site.
+A Cloudflare Worker that answers questions about Rajat's experience via
+OpenRouter (`openai/gpt-oss-120b` by default — paid, ~$0.0004/request worst
+case — with the free models in `src/models.ts` as automatic fallbacks),
+grounded in the same content files that render the portfolio site.
 
 **This is a learning scaffold.** The plumbing (routing, CORS, validation,
 streaming, corpus generation) is done; the parts worth learning are left as
@@ -21,9 +21,10 @@ npx wrangler login          # once
 npx wrangler secret put OPENROUTER_API_KEY   # free key from openrouter.ai/keys
 ```
 
-The model is free ($0/token) but the request budget isn't infinite:
-~20 req/min and 50 req/day account-wide (1,000/day after purchasing $10 of
-credits). Exercise 3's rate limit + off-topic gate protect that budget.
+The fallback models are free ($0/token) but their request budget isn't
+infinite: ~20 req/min account-wide, 1,000/day with $10+ of credits on the
+account. The paid default spends real credits, so the worker enforces a
+global daily cap on top of Exercise 3's per-IP rate limit.
 
 ## Develop
 

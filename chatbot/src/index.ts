@@ -41,14 +41,29 @@ export default {
     const current_date = new Date().toISOString().slice(0, 10);
     const key = `rate-limit:${user_ip}:${current_date}`;
     const user_request_count = await env.RATE_LIMIT.get(key) || '0'; // key can be any string of your choosing
-    
+
     if (Number(user_request_count) > 15) {
       return new Response(
         `429 Failure – Rate limit exceeded for user`,
         { status: 429, headers: cors },
       );
     }
+
+    // Global cap across all visitors: the default model is paid, so this
+    // bounds worst-case daily spend (200 × ~$0.0004 ≈ $0.08) even against
+    // many IPs. KV is eventually consistent, so treat it as a soft cap.
+    const GLOBAL_DAILY_LIMIT = 200;
+    const global_key = `rate-limit:global:${current_date}`;
+    const global_request_count = await env.RATE_LIMIT.get(global_key) || '0';
+
+    if (Number(global_request_count) >= GLOBAL_DAILY_LIMIT) {
+      return new Response(
+        `429 Failure – Daily chat limit reached, please try again tomorrow`,
+        { status: 429, headers: cors },
+      );
+    }
     await env.RATE_LIMIT.put(key, Number(user_request_count) + 1 + "", { expirationTtl: 60 * 60 * 48 });
+    await env.RATE_LIMIT.put(global_key, Number(global_request_count) + 1 + "", { expirationTtl: 60 * 60 * 48 });
 
     let question: unknown;
     let model: unknown;
