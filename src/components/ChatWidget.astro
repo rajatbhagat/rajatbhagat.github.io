@@ -313,6 +313,13 @@ const endpoint =
       addMsg('user', question);
       // The model reasons before it answers — first token can take ~10s.
       const bot = addMsg('bot thinking', 'Thinking…');
+      // If the first token is slow (busy free model), say so instead of
+      // looking frozen; the guard skips it once the answer starts streaming.
+      const slowTimer = setTimeout(() => {
+        if (bot.classList.contains('thinking')) {
+          bot.textContent = 'Still thinking — free models can take a little while…';
+        }
+      }, 8000);
       const fail = (text: string) => {
         bot.classList.remove('thinking');
         bot.classList.add('error');
@@ -364,6 +371,7 @@ const endpoint =
       } catch {
         fail("Couldn't reach the chat service — please try again later.");
       } finally {
+        clearTimeout(slowTimer);
         busy = false;
         send.disabled = false;
         input.focus();
