@@ -7,26 +7,30 @@
 // monthly; re-check https://openrouter.ai/models?q=free before swapping.
 // (Gemini itself has no free OpenRouter endpoint — Gemma is Google's
 // free offering.)
+// Declaration order matters: it is also the fallback order the worker sends
+// to OpenRouter (requested model first, then the rest as declared here).
 export const MODELS = {
+  google: {
+    // Checked 2026-08-26: ~4s round trip. (The 26B sibling's free pool was
+    // rate-limited that day, and gpt-oss-20b lost its :free endpoint.)
+    id: 'google/gemma-4-31b-it:free',
+    label: 'Google Gemma 4 31B',
+  },
+  zai: {
+    id: 'z-ai/glm-5.2:free',
+    label: 'Z.AI GLM 5.2',
+  },
   nvidia: {
     id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
     label: 'NVIDIA Nemotron Ultra 550B',
-  },
-  openai: {
-    id: 'openai/gpt-oss-20b:free',
-    label: 'OpenAI GPT-OSS 20B',
-  },
-  google: {
-    // The 31B sibling is chronically saturated upstream (Google AI Studio);
-    // the 26B has a provider with capacity.
-    id: 'google/gemma-4-26b-a4b-it:free',
-    label: 'Google Gemma 4 26B',
   },
 } as const;
 
 export type ModelKey = keyof typeof MODELS;
 
-export const DEFAULT_MODEL: ModelKey = 'nvidia';
+// The 31B Gemma answers in seconds; the 550B Nemotron reasons for a minute+
+// before its first token and stays as an opt-in from the picker.
+export const DEFAULT_MODEL: ModelKey = 'google';
 
 export function isModelKey(value: unknown): value is ModelKey {
   return typeof value === 'string' && value in MODELS;

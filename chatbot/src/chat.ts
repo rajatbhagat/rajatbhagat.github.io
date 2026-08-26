@@ -72,6 +72,12 @@ export async function askModel(
   } else {
     messagesInScope = messages.length < 6 ? messages : messages.slice(-5);
   }
+  // Requested model first, the others as fallbacks: if its free provider is
+  // saturated or erroring, OpenRouter retries the next one instead of failing.
+  const modelIds = [
+    model,
+    ...(Object.keys(MODELS) as ModelKey[]).filter((k) => k !== model),
+  ].map((k) => MODELS[k].id);
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -81,9 +87,14 @@ export async function askModel(
       "X-Title": "Ask My Resume",
     },
     body: JSON.stringify({
-      model: MODELS[model].id,
+      models: modelIds,
       max_tokens: 1024,
       stream: true,
+      // Reasoning models (Nemotron, gpt-oss) can otherwise think for 10s+
+      // before their first answer token; low effort bounds that, and exclude
+      // keeps reasoning deltas off the wire (we only forward content anyway).
+      reasoning: { effort: "low", exclude: true },
+      provider: { sort: "latency" },
       messages: [
         { role: "system", content: buildSystemPrompt() },
         ...messagesInScope,
