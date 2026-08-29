@@ -2,11 +2,13 @@
 // worker (which validates the requested key against this allowlist) and the
 // site (which renders the picker from it), so the two can't drift.
 //
-// The default is a PAID model (~$0.0004 worst case per request at 5k prompt
-// + 1k output tokens); the :free entries cost $0/token and, with >=$10 of
-// credits on the account, share a 1,000 req/day budget. The free lineup
-// changes monthly; re-check https://openrouter.ai/models?q=free before
-// swapping. The worker's global daily cap (index.ts) bounds paid spend.
+// The default is FREE ($0/token; with >=$10 of credits on the account the
+// :free models share a 1,000 req/day budget). gpt-oss-120b is PAID
+// (~$0.0004 worst case per request at 5k prompt + 1k output tokens) and
+// only spends credits when picked explicitly or reached as a fallback.
+// The free lineup changes monthly; re-check
+// https://openrouter.ai/models?q=free before swapping. The worker's
+// global daily cap (index.ts) bounds paid spend.
 // Declaration order matters: it is also the fallback order the worker sends
 // to OpenRouter (requested model first, then the rest as declared here).
 export const MODELS = {
@@ -28,10 +30,10 @@ export const MODELS = {
 
 export type ModelKey = keyof typeof MODELS;
 
-// Paid gpt-oss-120b: no free-pool queueing or daily-cap failures, first
-// token in a couple of seconds; the free Gemma is the fallback and the 550B
-// Nemotron (a minute+ of reasoning before its first token) stays opt-in.
-export const DEFAULT_MODEL: ModelKey = 'openai';
+// Free Gemma answers in ~1-4s; paid gpt-oss-120b is the first fallback (a
+// ~$0.0004 hit only when the free pool is saturated) and the 550B Nemotron
+// (a minute+ of reasoning before its first token) stays opt-in.
+export const DEFAULT_MODEL: ModelKey = 'google';
 
 export function isModelKey(value: unknown): value is ModelKey {
   return typeof value === 'string' && value in MODELS;
