@@ -1,9 +1,10 @@
 # Ask My Resume — chatbot Worker
 
 A Cloudflare Worker that answers questions about Rajat's experience via
-OpenRouter (`openai/gpt-oss-120b` by default — paid, ~$0.0004/request worst
-case — with the free models in `src/models.ts` as automatic fallbacks),
-grounded in the same content files that render the portfolio site.
+OpenRouter (`google/gemma-4-31b-it:free` by default, with the other models
+in `src/models.ts` — including the paid `openai/gpt-oss-120b` — as
+automatic fallbacks), grounded in the same content files that render the
+portfolio site.
 
 **This is a learning scaffold.** The plumbing (routing, CORS, validation,
 streaming, corpus generation) is done; the parts worth learning are left as
