@@ -16,9 +16,9 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
 ---
 
 <article class="card">
-  <div class="meta">
-    <a href={`/blog/category/${categorySlug}/`} class="pill">{post.data.category}</a>
-    <span class="muted">{dateStr}</span>
+  <div class="meta muted">
+    <a href={`/blog/category/${categorySlug}/`}>{post.data.category}</a>
+    <span>· {dateStr}</span>
   </div>
   <h3><a href={`/blog/${post.id}/`}>{post.data.title}</a></h3>
   <p class="muted">{post.data.description}</p>
@@ -26,15 +26,22 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
 
 <style>
   .meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
     font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .meta a {
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+
+  .meta a:hover {
+    color: var(--accent);
   }
 
   h3 {
-    margin: 0.6rem 0 0.35rem;
-    font-size: 1.15rem;
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
   }
 
   h3 a {
@@ -49,5 +56,6 @@ const dateStr = post.data.pubDate.toLocaleDateString('en-US', {
   p {
     margin: 0;
     font-size: 0.95rem;
+    line-height: 1.6;
   }
 </style>
