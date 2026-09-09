@@ -79,6 +79,15 @@ const rendered = await Promise.all(
     margin: 0 0 0.5rem;
   }
 
+  /* Cards are as narrow as 300px, so any screenshot has to scale to fit. */
+  .desc :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 0 0 0.75rem;
+  }
+
   .tech {
     display: flex;
     flex-wrap: wrap;
