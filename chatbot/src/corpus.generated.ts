@@ -132,6 +132,7 @@ order: 1
 
 ---
 name: Ask My Resume
+description: "An AI assistant on this site that answers recruiter questions about my experience, grounded in the site's own content."
 tech: [Cloudflare Workers, TypeScript, OpenRouter, LLMs, Astro, Workers KV]
 links:
   - label: Try it live
@@ -149,67 +150,40 @@ An AI assistant embedded in this site that answers recruiter questions about my 
 ---
 
 ---
-name: Food Recommender
-tech: [Node.js, JavaScript, MongoDB]
+name: Claude Usage Menu Bar
+description: "A macOS menu bar app that shows how much of my Claude Pro plan's usage limit I've burned through, as a live colored ring."
+tech: [Swift, SwiftUI, AppKit, macOS, Swift Package Manager]
 links:
-  - label: GitHub
-    url: https://github.com/rajatbhagat/food-recommender-server
-date: 2022-12-01
+  - label: Code
+    url: https://github.com/rajatbhagat/claude-usage-menubar
+date: 2026-09-09
 ---
 
-Backend server for a food recommendation application that suggests dishes and restaurants based on user preferences.
+![Claude Usage Menu Bar showing session and weekly usage in the macOS menu bar](images/claude-usage-menubar.png)
+
+A macOS menu bar app that shows how much of my Claude Pro plan's usage limit I've burned through, as a live colored ring in the menu bar — session and weekly percentages with reset countdowns, plus local token counts and estimated cost. It sources the numbers from Claude Code's own \`/usage\` command rather than a reverse-engineered endpoint, so they match the official dashboard, and the check itself costs nothing. Built with SwiftUI's \`MenuBarExtra\` and no Xcode project — just Swift Package Manager and a hand-rolled \`.app\` bundle. It requests zero macOS permissions, which turned out to be the hard part: GUI apps launch with a working directory of \`/\`, so the spawned CLI treated the entire filesystem root as its project and set off permission prompts for network volumes, Photos, Music, and Desktop until the working directory was pinned explicitly.
 
 
 ---
 
 ---
-name: Hotel Reservation System
-tech: [Java, Spring Boot, React, MySQL]
+name: Meal Planner
+description: 'A meal-planning web app my household actually runs on — shared weekly calendar, family cookbook, and a generated grocery list.'
+tech: [Next.js, TypeScript, Supabase, PostgreSQL, Vercel, Vitest, Playwright]
 links:
-  - label: Backend
-    url: https://github.com/rajatbhagat/hotel-reservation-spring-boot
-  - label: Frontend
-    url: https://github.com/rajatbhagat/hotel-reservation-react-app
-date: 2023-04-01
+  - label: Live app
+    url: https://meal-planner-ten-gray.vercel.app
+date: 2026-08-19
 ---
 
-A full-stack hotel booking application with a Spring Boot REST backend and a React frontend covering room search, reservations, and booking management.
-
-
----
-
----
-name: Mini-S3
-tech: [Java, Spring Boot, PostgreSQL, React, Next.js, TypeScript]
-links:
-  - label: Backend
-    url: https://github.com/rajatbhagat/mini-s3
-  - label: UI
-    url: https://github.com/rajatbhagat/mini-s3-ui
-date: 2026-07-09
----
-
-An S3-compatible object storage service built from scratch to understand object storage internals — bucket management, object versioning, custom metadata, and a RESTful API, plus a React/Next.js UI with drag-and-drop uploads.
-
-
----
-
----
-name: Music Recommendation System
-tech: [Python, Jupyter, scikit-learn]
-links:
-  - label: GitHub
-    url: https://github.com/rajatbhagat/music-recommendation-system
-date: 2022-09-01
----
-
-A machine-learning based music recommendation system exploring collaborative filtering and content-based approaches.
+A meal-planning web app my household actually runs on: a shared weekly calendar of breakfasts, lunches and dinners, a family recipe cookbook with import from Spoonacular, and a grocery list generated from the week's plan whose check-offs survive replanning. Next.js route handlers on Vercel serve both UI and API over Supabase Postgres, with Google sign-in behind an invite-only allowlist, explicit SQL and deny-all row-level security as a backstop, CI that greps the built client bundle for leaked secret values, and unit, integration and Playwright end-to-end test layers. Sign-in is invite-only, so the link stops politely at the front door.
 
 
 ---
 
 ---
 name: Portfolio Website
+description: 'This site — a statically generated portfolio and blog built with Astro, with every piece of content living in Markdown.'
 tech: [Astro, TypeScript, GitHub Actions, GitHub Pages, Markdown]
 links:
   - label: Live site

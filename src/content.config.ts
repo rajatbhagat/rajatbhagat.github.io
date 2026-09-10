@@ -37,6 +37,9 @@ const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
   schema: z.object({
     name: z.string(),
+    // One-line summary shown on the /projects listing card. The markdown
+    // body is the full write-up on the project's own page.
+    description: z.string(),
     tech: z.array(z.string()),
     links: z.array(z.object({ label: z.string(), url: z.string() })),
     // Projects sort newest-first by date. Add a project -> just give it a

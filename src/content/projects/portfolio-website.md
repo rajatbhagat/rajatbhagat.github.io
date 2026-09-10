@@ -1,5 +1,6 @@
 ---
 name: Portfolio Website
+description: 'This site — a statically generated portfolio and blog built with Astro, with every piece of content living in Markdown.'
 tech: [Astro, TypeScript, GitHub Actions, GitHub Pages, Markdown]
 links:
   - label: Live site

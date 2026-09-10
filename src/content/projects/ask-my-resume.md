@@ -1,5 +1,6 @@
 ---
 name: Ask My Resume
+description: "An AI assistant on this site that answers recruiter questions about my experience, grounded in the site's own content."
 tech: [Cloudflare Workers, TypeScript, OpenRouter, LLMs, Astro, Workers KV]
 links:
   - label: Try it live

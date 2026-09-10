@@ -1,5 +1,6 @@
 ---
 name: Meal Planner
+description: 'A meal-planning web app my household actually runs on — shared weekly calendar, family cookbook, and a generated grocery list.'
 tech: [Next.js, TypeScript, Supabase, PostgreSQL, Vercel, Vitest, Playwright]
 links:
   - label: Live app
