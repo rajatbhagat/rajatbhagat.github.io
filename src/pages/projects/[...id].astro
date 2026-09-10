@@ -1,0 +1,98 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import site from '../../data/site.json';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const dateStr = project.data.date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+});
+---
+
+<BaseLayout
+  title={`${project.data.name} — ${site.brandName}`}
+  description={project.data.description}
+  type="article"
+>
+  <article>
+    <header>
+      <p class="meta muted">{dateStr}</p>
+      <h1>{project.data.name}</h1>
+      <p class="muted description">{project.data.description}</p>
+      <p class="tech">
+        {project.data.tech.map((t) => <span class="pill">{t}</span>)}
+      </p>
+      <p class="links">
+        {project.data.links.map((link) => (
+          <a href={link.url} target="_blank" rel="noopener">{link.label} ↗</a>
+        ))}
+      </p>
+    </header>
+    <div class="content">
+      <Content />
+    </div>
+    <p><a href="/projects/">← Back to all projects</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  article {
+    max-width: 44rem;
+    margin: 2.5rem auto 0;
+  }
+
+  .meta {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  h1 {
+    margin: 0.5rem 0;
+    font-size: 2rem;
+  }
+
+  .description {
+    font-size: 1.05rem;
+    margin-top: 0;
+  }
+
+  .tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .links {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .content {
+    margin: 2rem 0;
+  }
+
+  /* Screenshots break out past the ~44rem reading column so their detail
+     stays legible — centered and capped to the viewport so they never cause
+     horizontal scroll. Matches the blog post treatment. */
+  .content :global(img) {
+    display: block;
+    height: auto;
+    max-width: min(56rem, 94vw);
+    margin-left: 50%;
+    transform: translateX(-50%);
+    border-radius: 8px;
+  }
+</style>

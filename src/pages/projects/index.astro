@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import site from '../../data/site.json';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id)
+);
+---
+
+<BaseLayout
+  title={`Projects — ${site.name}`}
+  description={`Selected personal and learning projects by ${site.name}.`}
+>
+  <h1>Projects</h1>
+  <p class="muted intro">
+    A selection of personal projects — open one for the full write-up. More on
+    <a href={site.github} target="_blank" rel="noopener">GitHub</a>.
+  </p>
+
+  <div class="project-list">
+    {projects.map((project) => <ProjectCard project={project} />)}
+  </div>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-top: 2.5rem;
+  }
+
+  .intro {
+    margin-bottom: 1.5rem;
+  }
+
+  .project-list {
+    display: grid;
+    gap: 1rem;
+  }
+</style>

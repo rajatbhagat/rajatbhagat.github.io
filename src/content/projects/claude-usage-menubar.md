@@ -1,5 +1,6 @@
 ---
 name: Claude Usage Menu Bar
+description: "A macOS menu bar app that shows how much of my Claude Pro plan's usage limit I've burned through, as a live colored ring."
 tech: [Swift, SwiftUI, AppKit, macOS, Swift Package Manager]
 links:
   - label: Code
