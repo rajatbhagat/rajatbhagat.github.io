@@ -3,11 +3,16 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
 import site from '../data/site.json';
 import profileImg from '../assets/profile.jpg';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id))
   .slice(0, 3);
 ---
 
@@ -53,10 +58,21 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     }
   </div>
 
-  <h2 class="section-title">Highlights</h2>
-  <ul class="highlights">
-    {site.highlights.map((h) => <li>{h}</li>)}
-  </ul>
+  {
+    projects.length > 0 && (
+      <>
+        <h2 class="section-title">Recent projects</h2>
+        <div class="project-list">
+          {projects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </div>
+        <p>
+          <a href="/projects/">All projects →</a>
+        </p>
+      </>
+    )
+  }
 
   {
     posts.length > 0 && (
@@ -139,14 +155,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     font-size: 0.92rem;
   }
 
-  .highlights {
-    padding-left: 1.25rem;
-  }
-
-  .highlights li {
-    margin-bottom: 0.4rem;
-  }
-
+  .project-list,
   .post-list {
     display: grid;
     gap: 1rem;
