@@ -45,6 +45,9 @@ const projects = defineCollection({
     // Projects sort newest-first by date. Add a project -> just give it a
     // date; no need to renumber anything.
     date: z.coerce.date(),
+    // Set `draft: true` to hide a project from the listing and skip building
+    // its page, without deleting the file.
+    draft: z.boolean().default(false),
   }),
 });
 
